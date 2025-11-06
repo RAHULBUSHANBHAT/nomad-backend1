@@ -1,0 +1,58 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: AUTH-SERVICE
+
+  # --- THIS SECTION IS UPDATED FOR MYSQL ---
+  datasource:
+    # URL for MySQL. Note the "mysql" protocol and default port "3306"
+    url: jdbc:mysql://localhost:3306/auth_db?createDatabaseIfNotExist=true
+    username: root # Common default for MySQL, change if needed
+    password: admin # Change to your MySQL password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update # Automatically creates/updates tables
+    show-sql: false # Set to true for debugging SQL
+    properties:
+      hibernate:
+        # This is the "engine" language for MySQL
+        dialect: org.hibernate.dialect.MySQLDialect
+  # --- END OF UPDATE ---
+
+  # Kafka Consumer properties
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: auth-service-group # Consumer group for this service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.cts.auth.dto.kafka"
+
+# Eureka Client Config
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+# JWT Configuration (for *generating* tokens)
+jwt:
+  secret: ${JWT_SECRET_KEY:mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
+  expiration-ms: 86400000 # 24 hours in milliseconds
+
+# Kafka Topic Names
+app:
+  kafka:
+    topics:
+      user-events: user-events-topic # The topic we are listening to
+
+# Logging
+logging:
+  level:
+    com.cts.auth: DEBUG
+    org.springframework.security: INFO

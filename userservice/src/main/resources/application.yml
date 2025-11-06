@@ -1,0 +1,51 @@
+server:
+  port: 8081 # Port for this service
+
+spring:
+  application:
+    name: USER-SERVICE
+
+  # --- UPDATED FOR MYSQL ---
+  datasource:
+    url: jdbc:mysql://localhost:3306/user_db?createDatabaseIfNotExist=true
+    username: root
+    password: admin
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update # Automatically creates/updates tables
+    show-sql: false # Set to true for debugging SQL
+    properties:
+      hibernate:
+        # This is the "engine" language for MySQL
+        dialect: org.hibernate.dialect.MySQLDialect
+  # --- END OF UPDATE ---
+
+  # Kafka Producer properties
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+# Eureka Client Config
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+app:
+  kafka:
+    topics:
+      user-events: user-events-topic
+
+gateway:
+  secret-key: ${mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
+
+# Logging (as requested)
+logging:
+  level:
+    com.cts.user: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web.filter: DEBUG # To see filters in action

@@ -1,0 +1,166 @@
+spring:
+  application:
+    name: apigateway
+  output:
+    ansi:
+      enabled: ALWAYS
+
+  cloud:
+    gateway:
+      # CORS Configuration
+      globalcors:
+        cors-configurations:
+          "[/**]":
+            allowed-origins:
+              - "http://localhost:5173"
+              - "http://localhost:3000"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowed-headers:
+              - "*"
+            allow-credentials: true
+            exposed-headers:
+              - Authorization
+              - Content-Type
+            max-age: 3600
+
+      # Routes
+      routes:
+        # ============================================
+        # PUBLIC ROUTES (No Authentication)
+        # ============================================
+        - id: authservice
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/api/v1/auth/**
+          # No filters = public
+
+        # # ============================================
+        # # ADMIN ROUTES (Protected - ADMIN role only) DO IT FROM HERE
+        # # ============================================
+        # - id: ADMIN-USER-SERVICE
+        #   uri: lb://USER-SERVICE
+        #   predicates:
+        #     - Path=/api/v1/admin/users/**
+        #   filters:
+        #     - JwtAuthenticationFilter
+        #     - name: RoleAuthorizationFilter
+        #       args:
+        #         allowedRoles: [ADMIN]
+
+        # - id: ADMIN-DRIVER-SERVICE
+        #   uri: lb://DRIVER-SERVICE
+        #   predicates:
+        #     - Path=/api/v1/admin/drivers/**
+        #   filters:
+        #     - JwtAuthenticationFilter
+        #     - name: RoleAuthorizationFilter
+        #       args:
+        #         allowedRoles: [ADMIN]
+
+        # # ... other admin routes ...
+
+        # ============================================
+        # USER ROUTES (Protected - JWT Required)
+        # ============================================
+        - id: USER-SERVICE
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - JwtAuthenticationFilter
+            # Any valid token works
+
+        # # ============================================
+        # # DRIVER ROUTES (Protected - DRIVER role)
+        # # ============================================
+        # - id: DRIVER-SERVICE-SELF
+        #   uri: lb://DRIVER-SERVICE
+        #   predicates:
+        #     - Path=/api/v1/drivers/me/**
+        #   filters:
+        #     - JwtAuthenticationFilter
+        #     - name: RoleAuthorizationFilter
+        #       args:
+        #         allowedRoles: [DRIVER]
+
+        # - id: DRIVER-BOOKING-SERVICE
+        #   uri: lb://BOOKING-SERVICE
+        #   predicates:
+        #     - Path=/api/v1/driver/bookings/**
+        #   filters:
+        #     - JwtAuthenticationFilter
+        #     - name: RoleAuthorizationFilter
+        #       args:
+        #         allowedRoles: [DRIVER]
+
+        # # ============================================
+        # # RIDER ROUTES (Protected - RIDER role)
+        # # ============================================
+        # - id: RIDER-BOOKING-SERVICE
+        #   uri: lb://BOOKING-SERVICE
+        #   predicates:
+        #     - Path=/api/v1/bookings/**
+        #   filters:
+        #     - JwtAuthenticationFilter
+        #     - name: RoleAuthorizationFilter
+        #       args:
+        #         allowedRoles: [RIDER, DRIVER]
+
+        # - id: RIDER-SERVICE
+        #   uri: lb://RIDER-SERVICE
+        #   predicates:
+        #     - Path=/api/v1/riders/**
+        #   filters:
+        #     - JwtAuthenticationFilter
+        #     - name: RoleAuthorizationFilter
+        #       args:
+        #         allowedRoles: [RIDER]
+
+        # - id: WALLET-SERVICE
+        #   uri: lb://WALLET-SERVICE
+        #   predicates:
+        #     - Path=/api/v1/wallets/**
+        #   filters:
+        #     - JwtAuthenticationFilter
+        #     # DRIVER or RIDER can see their own wallet
+
+        # # ============================================
+        # # SECURITY: BLOCK INTERNAL ENDPOINTS (MUST BE LAST)
+        # # ============================================
+        # - id: INTERNAL-BLOCK
+        #   uri: no://op
+        #   predicates:
+        #     - Path=/api/v1/internal/** # Block any public calls
+        #   filters:
+        #     - name: SetStatus
+        #       args:
+        #         status: 403 # Forbidden
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/ # Port for Service 1
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+jwt:
+  secret: ${JWT_SECRET_KEY:mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
+
+gateway:
+  secret-key: ${GATEWAY_SECRET_KEY:mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.cts.apigateway: DEBUG
