@@ -34,14 +34,18 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+  instance:
+    # --- CRITICAL FIX ---
+    prefer-ip-address: true
 
 app:
   kafka:
     topics:
       user-events: user-events-topic
-
+jwt:
+  secret: ${JWT_SECRET_KEY:mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
 gateway:
-  secret-key: ${mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
+  secret-key: ${GATEWAY_SECRET_KEY:mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
 
 # Logging (as requested)
 logging:

@@ -69,6 +69,9 @@ public class UserServiceImpl {
 
         // 5. Send the event to the Kafka topic
         try {
+            log.debug("Sending Kafka event: id={}, type={}, email={}, role={}", 
+                     eventDto.getUserId(), eventDto.getEventType(), 
+                     eventDto.getEmail(), eventDto.getRole());
             kafkaTemplate.send(userEventsTopic, savedUser.getId(), eventDto);
             log.info("Sent 'USER_CREATED' event to Kafka topic: {}", userEventsTopic);
         } catch (Exception e) {

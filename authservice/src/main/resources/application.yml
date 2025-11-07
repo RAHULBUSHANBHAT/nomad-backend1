@@ -27,23 +27,26 @@ spring:
   kafka:
     consumer:
       bootstrap-servers: localhost:9092
-      group-id: auth-service-group # Consumer group for this service
-      auto-offset-reset: earliest
+      group-id: auth-service-group-2 # Consumer group for this service
+      auto-offset-reset: latest
+      enable.auto.commit: true
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.cts.auth.dto.kafka"
 
 # Eureka Client Config
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
-
+  instance:
+    # --- CRITICAL FIX ---
+    prefer-ip-address: true
 # JWT Configuration (for *generating* tokens)
 jwt:
   secret: ${JWT_SECRET_KEY:mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
   expiration-ms: 86400000 # 24 hours in milliseconds
+gateway:
+  secret-key: ${GATEWAY_SECRET_KEY:mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
 
 # Kafka Topic Names
 app:

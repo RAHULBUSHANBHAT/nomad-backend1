@@ -38,6 +38,11 @@ spring:
           uri: lb://AUTH-SERVICE
           predicates:
             - Path=/api/v1/auth/**
+
+        - id: REGISTER-SERVICE
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/v1/users/register
           # No filters = public
 
         # # ============================================
