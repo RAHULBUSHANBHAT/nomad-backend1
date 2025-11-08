@@ -1,10 +1,10 @@
-package com.cts;
+package com.cts.rider.riderservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class DriverserviceApplicationTests {
+class RiderserviceApplicationTests {
 
 	@Test
 	void contextLoads() {

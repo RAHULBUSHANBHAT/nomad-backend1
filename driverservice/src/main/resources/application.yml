@@ -1,0 +1,61 @@
+server:
+  port: 8083 # Port for the driver service
+
+spring:
+  application:
+    name: DRIVER-SERVICE
+
+  # --- MYSQL CONFIG ---
+  datasource:
+    url: jdbc:mysql://localhost:3306/driver_db?createDatabaseIfNotExist=true
+    username: root
+    password: admin # Change to your MySQL password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update # Automatically creates/updates tables
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+  # --- END OF MYSQL ---
+
+  # Kafka Consumer properties
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: driver-service-group
+      auto-offset-reset: earliest
+      enable.auto.commit: false # We will use the robust error handler
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+
+      properties:
+        # Tell the EHD which inner deserializer to use
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+
+# Kafka Topic Names
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    # --- CRITICAL FIX ---
+    prefer-ip-address: true
+app:
+  kafka:
+    topics:
+      user-events: user-events-topic # Topic 1 we listen to
+      ride-requests: ride-requests-topic # Topic 2 we listen to (for matching)
+
+# This key MUST EXACTLY match the 'gateway.secret-key' from the api-gateway's yml
+gateway:
+  secret-key: ${GATEWAY_SECRET_KEY:mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
+
+# Logging
+logging:
+  level:
+    com.cts.driver: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web.filter: DEBUG

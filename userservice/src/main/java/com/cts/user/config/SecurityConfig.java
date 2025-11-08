@@ -5,7 +5,6 @@ import com.cts.user.security.JwtHeaderAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,47 +32,33 @@ public class SecurityConfig {
     }
 
     /**
-     * --- "INTERNAL" SECURITY CHAIN ---
-     * @Order(1) - Runs FIRST.
-     * Applies ONLY to "/api/v1/internal/**"
+     * This is now our ONE and ONLY security chain for the entire service.
+     * It correctly applies all 3 layers of security.
      */
     @Bean
-    @Order(1)
-    public SecurityFilterChain internalApiSecurity(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .securityMatcher("/api/v1/internal/**") // Only applies to these paths
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .csrf(csrf -> csrf.disable()) // Disable CSRF
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless
             .authorizeHttpRequests(authz -> authz
-                .anyRequest().authenticated() // All internal endpoints must be authenticated
-            )
-            // Apply ONLY Layer 1 (The Gateway Key)
-            .addFilterBefore(gatewayKeyFilter, UsernamePasswordAuthenticationFilter.class);
-            // We do NOT add Layer 2 (JwtHeaderAuthenticationFilter)
-        
-        return http.build();
-    }
-
-    /**
-     * --- "PUBLIC" SECURITY CHAIN ---
-     * @Order(2) - Runs SECOND (for all other paths).
-     * Applies to "/api/v1/users/**"
-     */
-    @Bean
-    @Order(2)
-    public SecurityFilterChain publicApiSecurity(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(authz -> authz
-                // The registration endpoint is public (as defined in gateway)
+                // 1. The registration endpoint is public.
                 .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
-                // All other "public" endpoints must be authenticated
+                
+                // 2. All other endpoints (public, admin, AND internal)
+                //    must be authenticated.
                 .anyRequest().authenticated()
             )
-            // Apply BOTH Layer 1 AND Layer 2
-            .addFilterBefore(gatewayKeyFilter, UsernamePasswordAuthenticationFilter.class) // Layer 1
-            .addFilterAfter(jwtHeaderAuthenticationFilter, GatewayKeyFilter.class); // Layer 2
+            // 3. We apply our filters IN ORDER.
+            
+            // Layer 1: Check the Gateway Key *first* for ALL requests.
+            .addFilterBefore(gatewayKeyFilter, UsernamePasswordAuthenticationFilter.class)
+            
+            // Layer 2: If Layer 1 passes, read the User Headers and create
+            //          the SecurityContext for *all* requests.
+            .addFilterAfter(jwtHeaderAuthenticationFilter, GatewayKeyFilter.class);
+            
+            // Layer 3: @PreAuthorize will now work on *all* controllers,
+            //          including the internal ones.
 
         return http.build();
     }

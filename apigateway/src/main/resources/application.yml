@@ -81,18 +81,28 @@ spring:
             - JwtAuthenticationFilter
             # Any valid token works
 
-        # # ============================================
-        # # DRIVER ROUTES (Protected - DRIVER role)
-        # # ============================================
-        # - id: DRIVER-SERVICE-SELF
-        #   uri: lb://DRIVER-SERVICE
-        #   predicates:
-        #     - Path=/api/v1/drivers/me/**
-        #   filters:
-        #     - JwtAuthenticationFilter
-        #     - name: RoleAuthorizationFilter
-        #       args:
-        #         allowedRoles: [DRIVER]
+        # ============================================
+        # DRIVER ROUTES (Protected - DRIVER role)
+        # ============================================
+        - id: DRIVER-SERVICE-SELF
+          uri: lb://DRIVER-SERVICE
+          predicates:
+            - Path=/api/v1/drivers/me/**
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [DRIVER]
+
+        - id: ADMIN-DRIVER-SERVICE
+          uri: lb://DRIVER-SERVICE
+          predicates:
+            - Path=/api/v1/admin/drivers/**
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
 
         # - id: DRIVER-BOOKING-SERVICE
         #   uri: lb://BOOKING-SERVICE
@@ -135,17 +145,17 @@ spring:
         #     - JwtAuthenticationFilter
         #     # DRIVER or RIDER can see their own wallet
 
-        # # ============================================
-        # # SECURITY: BLOCK INTERNAL ENDPOINTS (MUST BE LAST)
-        # # ============================================
-        # - id: INTERNAL-BLOCK
-        #   uri: no://op
-        #   predicates:
-        #     - Path=/api/v1/internal/** # Block any public calls
-        #   filters:
-        #     - name: SetStatus
-        #       args:
-        #         status: 403 # Forbidden
+        # ============================================
+        # SECURITY: BLOCK INTERNAL ENDPOINTS (MUST BE LAST)
+        # ============================================
+        - id: INTERNAL-BLOCK
+          uri: no://op
+          predicates:
+            - Path=/api/v1/internal/** # Block any public calls
+          filters:
+            - name: SetStatus
+              args:
+                status: 403 # Forbidden
 
 server:
   port: 8080
