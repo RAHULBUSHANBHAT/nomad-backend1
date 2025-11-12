@@ -16,17 +16,17 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
     
     // For Rider's "My Bookings" page
     Page<Booking> findByRiderUserId(String riderUserId, Pageable pageable);
-    Page<Booking> findByRiderIdAndBookingStatus(String riderUserId, BookingStatus bookingStatus, Pageable pageable);
-    Page<Booking> findByRiderIdAndPickupLocationNameContainingIgnoreCase(String riderUserId, String searchTerm, Pageable pageable);
-    Page<Booking> findByRiderIdAndDropoffLocationNameContainingIgnoreCase(String riderUserId, String searchTerm, Pageable pageable);
-    Page<Booking> findByRiderIdAndCreatedAtBetween(String riderUserId, LocalDateTime start, LocalDateTime end, Pageable pageable);
+    Page<Booking> findByRiderUserIdAndStatus(String riderUserId, BookingStatus bookingStatus, Pageable pageable);
+    Page<Booking> findByRiderUserIdAndPickupLocationNameContainingIgnoreCase(String riderUserId, String searchTerm, Pageable pageable);
+    Page<Booking> findByRiderUserIdAndDropoffLocationNameContainingIgnoreCase(String riderUserId, String searchTerm, Pageable pageable);
+    Page<Booking> findByRiderUserIdAndRequestTimeBetween(String riderUserId, LocalDateTime start, LocalDateTime end, Pageable pageable);
     
     // For Driver's "My Bookings" page
     Page<Booking> findByDriverUserId(String driverUserId, Pageable pageable);
-    Page<Booking> findByDriverIdAndBookingStatus(String driverUserId, BookingStatus bookingStatus, Pageable pageable);
-    Page<Booking> findByDriverIdAndPickupLocationNameContainingIgnoreCase(String driverUserId, String searchTerm, Pageable pageable);
-    Page<Booking> findByDriverIdAndDropoffLocationNameContainingIgnoreCase(String driverUserId, String searchTerm, Pageable pageable);
-    Page<Booking> findByDriverIdAndCreatedAtBetween(String driverUserId, LocalDateTime start, LocalDateTime end, Pageable pageable);
+    Page<Booking> findByDriverUserIdAndStatus(String driverUserId, BookingStatus bookingStatus, Pageable pageable);
+    Page<Booking> findByDriverUserIdAndPickupLocationNameContainingIgnoreCase(String driverUserId, String searchTerm, Pageable pageable);
+    Page<Booking> findByDriverUserIdAndDropoffLocationNameContainingIgnoreCase(String driverUserId, String searchTerm, Pageable pageable);
+    Page<Booking> findByDriverUserIdAndRequestTimeBetween(String driverUserId, LocalDateTime start, LocalDateTime end, Pageable pageable);
 
     Optional<Booking> findByRiderUserIdAndStatusIn(String riderUserId, List<BookingStatus> activeStatuses);
 }

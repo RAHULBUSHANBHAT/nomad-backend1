@@ -80,15 +80,8 @@ public class DriverServiceImpl {
 
     @Transactional
     public boolean updateDriverStatus(String userId, UpdateDriverStatusDto dto) {
-        log.info("Updating status for user ID: {} to available={}", userId, dto.isAvailable());
+        log.info("Updating current city for driver ID: {} to {}", userId, dto.getCurrentCity());
         Driver driver = findDriverByUserId(userId);
-        
-        if (dto.isAvailable() && !driver.isDriverLicenseVerified()) {
-            log.warn("Driver {} cannot go online. Driver is not verified.", userId);
-            throw new IllegalStateException("Cannot go online. Your profile is not yet verified by an admin.");
-        }
-        
-        driver.setAvailable(dto.isAvailable());
         driver.setCurrentCity(dto.getCurrentCity());
         driverRepository.save(driver);
         return driver.isAvailable();
@@ -211,6 +204,8 @@ public class DriverServiceImpl {
             case AADHAAR -> driver.setAadhaarVerified(true);
             case LICENSE -> driver.setDriverLicenseVerified(true);
         }
+        log.info("Approved {} for driver {}", type, driverId);
+        if(driver.isAadhaarVerified() && driver.isDriverLicenseVerified()) driver.setAvailable(true);
         Driver savedDriver = driverRepository.save(driver);
         UserDto user = userClient.getUserById(savedDriver.getUserId());
         return driverMapper.toDriverProfileDto(savedDriver, user);

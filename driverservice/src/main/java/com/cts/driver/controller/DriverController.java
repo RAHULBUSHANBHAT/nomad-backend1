@@ -48,13 +48,6 @@ public class DriverController {
         return ResponseEntity.ok(driverService.updateVerification(getUserId(authentication), verificationDto));
     }
     
-    @PostMapping("/me/status")
-    @PreAuthorize("hasRole('DRIVER')")
-    public ResponseEntity<Boolean> updateMyLocation(Authentication authentication, 
-                                            @Valid @RequestBody UpdateDriverStatusDto statusDto) {
-        return ResponseEntity.ok(driverService.updateDriverStatus(getUserId(authentication), statusDto));
-    }
-    
     @GetMapping("/me/offers")
     @PreAuthorize("hasRole('DRIVER')")
     public ResponseEntity<List<RideOfferDto>> getPendingOffers(Authentication authentication) {

@@ -36,25 +36,25 @@ public class RideTransaction {
     @Column(name = "driver_phone")
     private String driverPhone;
 
-    @Column(name = "base_fare", precision = 10, scale = 2)
+    @Column(name = "base_fare")
     private double baseFare;
 
-    @Column(name = "distance_fare", precision = 10, scale = 2)
+    @Column(name = "distance_fare")
     private double distanceFare; // The charge for kms
 
-    @Column(name = "taxes", precision = 10, scale = 2)
+    @Column(name = "taxes")
     private double taxes;
     
-    @Column(name = "commission_fee", precision = 10, scale = 2)
+    @Column(name = "commission_fee")
     private double commissionFee;
 
-    @Column(name = "total_fare", nullable = false, precision = 10, scale = 2)
+    @Column(name = "total_fare", nullable = false)
     private double totalFare;
 
-    @Column(name = "pickup_address", length = 512) // Added length for addresses
+    @Column(name = "pickup_address", length = 512)
     private String pickupAddress;
 
-    @Column(name = "dropoff_address", length = 512) // Added length for addresses
+    @Column(name = "dropoff_address", length = 512)
     private String dropoffAddress;
 
     @Enumerated(EnumType.STRING)

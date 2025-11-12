@@ -242,12 +242,19 @@ public class BookingService {
         String filterType = bookingFiltersDto.getFilterType() != null ? bookingFiltersDto.getFilterType() : "";
         
         return switch (filterType.toLowerCase()) {
-            case "status" -> bookingRepository.findByRiderIdAndBookingStatus(riderUserId, BookingStatus.valueOf(searchTerm.toUpperCase()), pageable).map(bookingMapper::toDto);
-            case "pickup_address" -> bookingRepository.findByRiderIdAndPickupLocationNameContainingIgnoreCase(riderUserId, searchTerm, pageable).map(bookingMapper::toDto);
-            case "dropoff_address" -> bookingRepository.findByRiderIdAndDropoffLocationNameContainingIgnoreCase(riderUserId, searchTerm, pageable).map(bookingMapper::toDto);
+            case "status" ->
+                bookingRepository.findByRiderUserIdAndStatus(riderUserId, BookingStatus.valueOf(searchTerm.toUpperCase()), pageable)
+                .map(bookingMapper::toDto);
+            case "pickup_address" ->
+                bookingRepository.findByRiderUserIdAndPickupLocationNameContainingIgnoreCase(riderUserId, searchTerm, pageable)
+                .map(bookingMapper::toDto);
+            case "dropoff_address" ->
+                bookingRepository.findByRiderUserIdAndDropoffLocationNameContainingIgnoreCase(riderUserId, searchTerm, pageable)
+                .map(bookingMapper::toDto);
             case "date" -> {
-                LocalDate date = LocalDate.parse(searchTerm);
-                yield bookingRepository.findByRiderIdAndCreatedAtBetween(riderUserId, date.atStartOfDay(), date.atTime(LocalTime.MAX), pageable).map(bookingMapper::toDto);
+                LocalDate date = LocalDate.parse(searchTerm); // Expects "YYYY-MM-DD"
+                yield bookingRepository.findByRiderUserIdAndRequestTimeBetween(riderUserId, date.atStartOfDay(), date.atTime(LocalTime.MAX), pageable)
+                .map(bookingMapper::toDto);
             }
             default -> bookingRepository.findByRiderUserId(riderUserId, pageable).map(bookingMapper::toDto);
         };
@@ -259,12 +266,19 @@ public class BookingService {
         String filterType = bookingFiltersDto.getFilterType() != null ? bookingFiltersDto.getFilterType() : "";
         
         return switch (filterType.toLowerCase()) {
-            case "status" -> bookingRepository.findByDriverIdAndBookingStatus(driverUserId, BookingStatus.valueOf(searchTerm.toUpperCase()), pageable).map(bookingMapper::toDto);
-            case "pickup_address" -> bookingRepository.findByDriverIdAndPickupLocationNameContainingIgnoreCase(driverUserId, searchTerm, pageable).map(bookingMapper::toDto);
-            case "dropoff_address" -> bookingRepository.findByDriverIdAndDropoffLocationNameContainingIgnoreCase(driverUserId, searchTerm, pageable).map(bookingMapper::toDto);
+            case "status" ->
+                bookingRepository.findByDriverUserIdAndStatus(driverUserId, BookingStatus.valueOf(searchTerm.toUpperCase()), pageable)
+                .map(bookingMapper::toDto);
+            case "pickup_address" ->
+                bookingRepository.findByDriverUserIdAndPickupLocationNameContainingIgnoreCase(driverUserId, searchTerm, pageable)
+                .map(bookingMapper::toDto);
+            case "dropoff_address" ->
+                bookingRepository.findByDriverUserIdAndDropoffLocationNameContainingIgnoreCase(driverUserId, searchTerm, pageable)
+                .map(bookingMapper::toDto);
             case "date" -> {
-                LocalDate date = LocalDate.parse(searchTerm);
-                yield bookingRepository.findByDriverIdAndCreatedAtBetween(driverUserId, date.atStartOfDay(), date.atTime(LocalTime.MAX), pageable).map(bookingMapper::toDto);
+                LocalDate date = LocalDate.parse(searchTerm); // Expects "YYYY-MM-DD"
+                yield bookingRepository.findByDriverUserIdAndRequestTimeBetween(driverUserId, date.atStartOfDay(), date.atTime(LocalTime.MAX), pageable)
+                .map(bookingMapper::toDto);
             }
             default -> bookingRepository.findByDriverUserId(driverUserId, pageable).map(bookingMapper::toDto);
         };

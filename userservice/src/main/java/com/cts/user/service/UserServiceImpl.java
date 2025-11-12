@@ -21,6 +21,7 @@ import com.cts.user.client.WalletClient;
 import com.cts.user.dto.AdminDashboardDto;
 import com.cts.user.dto.RegisterUserDto;
 import com.cts.user.dto.TransactionDto;
+import com.cts.user.dto.UpdateDriverStatusDto;
 import com.cts.user.dto.UpdateUserDto;
 import com.cts.user.dto.UserDto;
 import com.cts.user.dto.UserStatusUpdateDto;
@@ -148,7 +149,7 @@ public class UserServiceImpl {
                     .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
         } 
         else if (phone != null && !phone.isEmpty()) {
-            user = userRepository.findByPhone(phone)
+            user = userRepository.findByPhoneNumber(phone)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found with phone: " + phone));
         } 
         else {
@@ -215,6 +216,7 @@ public class UserServiceImpl {
         user.setLastName(updateUserDto.getLastName());
         user.setCity(updateUserDto.getCity());
         user.setState(updateUserDto.getState());
+        driverClient.updateMyLocation(user.getId(), new UpdateDriverStatusDto(updateUserDto.getCity()));
 
         User updatedUser = userRepository.save(user);
         return userMapper.toUserDto(updatedUser);
