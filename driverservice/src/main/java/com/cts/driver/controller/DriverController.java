@@ -69,11 +69,14 @@ public class DriverController {
     
     // --- ADMIN ENDPOINTS (for the admin panel) ---
 
-    @GetMapping("/admin/all")
+   @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<DriverProfileDto>> getAllDrivers(
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        return ResponseEntity.ok(driverService.getAllDrivers(pageable));
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable,
+            @RequestParam(required = false) String filterType,   // "AADHAR" or "LICENSE"
+            @RequestParam(required = false) String searchContent // The value
+    ) {
+        return ResponseEntity.ok(driverService.getAllDrivers(pageable, filterType, searchContent));
     }
 
     @GetMapping("/admin/verification-queue")

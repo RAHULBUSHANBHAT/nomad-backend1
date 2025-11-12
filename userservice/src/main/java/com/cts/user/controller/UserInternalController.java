@@ -56,4 +56,6 @@ public class UserInternalController {
         userService.addRating(id, dto.getRating());
         return ResponseEntity.ok().build();
     }
+
+    
 }

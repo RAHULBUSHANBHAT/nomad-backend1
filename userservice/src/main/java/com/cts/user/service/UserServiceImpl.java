@@ -1,10 +1,15 @@
 package com.cts.user.service;
 
+import org.springframework.data.domain.PageImpl;
+import java.util.Collections;
+import java.util.Optional;
+
 import java.util.List; // <-- ADD
 
 import org.springframework.beans.factory.annotation.Autowired; // <-- ADD
 import org.springframework.beans.factory.annotation.Value; // <-- ADD
 import org.springframework.data.domain.Page; // <-- ADD
+
 import org.springframework.data.domain.Pageable; // <-- ADD
 import org.springframework.kafka.core.KafkaTemplate; // <-- ADD
 import org.springframework.security.crypto.password.PasswordEncoder; // <-- ADD
@@ -134,9 +139,53 @@ public class UserServiceImpl {
                 .build();
     }
 
-    public Page<UserDto> getAllRiders(Pageable pageable) {
+    
+    public UserDto searchUser(String email, String phone) {
+        User user = null;
+
+        if (email != null && !email.isEmpty()) {
+            user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        } 
+        else if (phone != null && !phone.isEmpty()) {
+            user = userRepository.findByPhone(phone)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with phone: " + phone));
+        } 
+        else {
+            throw new IllegalArgumentException("At least one search parameter is required.");
+        }
+        
+        return userMapper.toUserDto(user);
+    }
+
+   public Page<UserDto> getAllRiders(Pageable pageable, String filterType, String searchContent) {
+        
+        // --- FILTER LOGIC ---
+        if (filterType != null && searchContent != null && !searchContent.isEmpty()) {
+            log.info("Admin searching Riders. Type: {}, Content: {}", filterType, searchContent);
+            
+            Optional<User> userOptional = Optional.empty();
+
+            // Switch based on the generic filterType
+            if ("EMAIL".equalsIgnoreCase(filterType)) {
+                userOptional = userRepository.findByEmailAndRole(searchContent, Role.RIDER);
+            } 
+            else if ("PHONE".equalsIgnoreCase(filterType)) {
+                // Ensure this matches the database column (phoneNumber)
+                userOptional = userRepository.findByPhoneNumberAndRole(searchContent, Role.RIDER);
+            }
+
+            // If no user found, return empty page
+            if (userOptional.isEmpty()) {
+                return Page.empty();
+            }
+
+            // Return Page with 1 result
+            return new PageImpl<>(Collections.singletonList(userMapper.toUserDto(userOptional.get())), pageable, 1);
+        }
+
+        // --- DEFAULT: NO FILTER (Fetch All Riders) ---
         log.info("Admin request: Fetching all RIDERs, page {} of size {}", pageable.getPageNumber(), pageable.getPageSize());
-        // Call the new repository method
         return userRepository.findByRole(Role.RIDER, pageable)
                 .map(userMapper::toUserDto);
     }

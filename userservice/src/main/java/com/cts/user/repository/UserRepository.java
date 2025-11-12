@@ -1,12 +1,14 @@
 package com.cts.user.repository;
 
-import com.cts.user.model.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import org.springframework.data.domain.Page; // <-- Import Page
-import org.springframework.data.domain.Pageable;
-import com.cts.user.model.Role;
 import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository; // <-- Import Page
+import org.springframework.stereotype.Repository;
+
+import com.cts.user.model.Role;
+import com.cts.user.model.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
@@ -20,5 +22,14 @@ public interface UserRepository extends JpaRepository<User, String> {
     boolean existsByPhoneNumber(String phoneNumber);
 
     Page<User> findByRole(Role role, Pageable pageable);
+    
+    Optional<User> findByPhone(String phone);
+
+    Optional<User> findByEmailAndRole(String email, Role role);
+
+  
+    Optional<User> findByPhoneNumberAndRole(String phoneNumber, Role role);
+  
+
 
 }

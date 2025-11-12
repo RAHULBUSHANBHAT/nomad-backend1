@@ -108,8 +108,14 @@ public class UserController {
     @GetMapping("/admin/riders")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<UserDto>> getAllRiders(
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        log.info("Admin request: Received for getAllRiders, page {} size {}", pageable.getPageNumber(), pageable.getPageSize());
-        return ResponseEntity.ok(userService.getAllRiders(pageable));
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) String filterType,   // Expected: "EMAIL" or "PHONE"
+            @RequestParam(required = false) String searchContent // Expected: "john@gmail.com" or "9876543210"
+    ) {
+        log.info("Admin request: getAllRiders with filterType: {} and content: {}", filterType, searchContent);
+        
+        return ResponseEntity.ok(userService.getAllRiders(pageable, filterType, searchContent));
     }
+
+
 }

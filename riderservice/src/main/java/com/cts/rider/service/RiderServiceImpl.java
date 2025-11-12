@@ -1,6 +1,6 @@
 package com.cts.rider.service;
 
-// import com.cts.rider.client.BookingClient;
+import com.cts.rider.client.BookingClient;
 import com.cts.rider.client.UserClient;
 import com.cts.rider.client.WalletClient;
 import com.cts.rider.dto.RiderAccountDto;
@@ -24,7 +24,7 @@ public class RiderServiceImpl {
     @Autowired
     private WalletClient walletClient;
     // @Autowired
-    // private BookingClient bookingClient; // Un-commented
+    private BookingClient bookingClient; // Un-commented
 
     /**
      * Gets all account info for the "My Account" page.
@@ -57,7 +57,7 @@ public class RiderServiceImpl {
     /**
      * Updates the user's profile information.
      */
-    public UserDto updateMyAccountDetails(Authentication authentication, UpdateRiderDto updateDto) {
+    public UserDto  updateMyAccountDetails(Authentication authentication, UpdateRiderDto updateDto) {
         log.debug("Updating account details for current rider...");
         String userId = (String) authentication.getDetails();
         // Call the new INTERNAL update endpoint
@@ -67,10 +67,10 @@ public class RiderServiceImpl {
     /**
      * Gets the rider's paginated booking history.
      */
-    // public Page<BookingDto> getMyBookingHistory(Authentication authentication, Pageable pageable) {
-    //     log.debug("Fetching booking history for current rider...");
-    //     String userId = (String) authentication.getDetails();
-    //     // Call the new INTERNAL history endpoint
-    //     return bookingClient.getMyBookingHistoryInternal(userId, pageable);
-    // }
+    public Page<BookingDto> getMyBookingHistory(Authentication authentication, Pageable pageable) {
+        log.debug("Fetching booking history for current rider...");
+        String userId = (String) authentication.getDetails();
+        // Call the new INTERNAL history endpoint
+        return bookingClient.getMyBookingHistoryInternal(userId, pageable);
+    }
 }

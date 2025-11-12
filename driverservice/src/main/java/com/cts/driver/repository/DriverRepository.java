@@ -22,4 +22,6 @@ public interface DriverRepository extends JpaRepository<Driver, String> {
     
     // For admin "verification queue"
     Page<Driver> findByIsDriverLicenseVerifiedFalse(Pageable pageable);
+    Optional<Driver> findByAadharNumber(String aadharNumber);
+    Optional<Driver> findByLicenseNumber(String licenseNumber);
 }

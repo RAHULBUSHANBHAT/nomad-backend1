@@ -37,11 +37,11 @@ public class RiderController {
         return ResponseEntity.ok(riderService.updateMyAccountDetails(authentication, updateDto));
     }
 
-    // @GetMapping("/me/bookings/history")
-    // public ResponseEntity<Page<BookingDto>> getMyBookingHistory(
-    //         Authentication authentication,
-    //         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-    //     log.info("Rider request: getMyBookingHistory");
-    //     return ResponseEntity.ok(riderService.getMyBookingHistory(authentication, pageable));
-    // }
+    @GetMapping("/me/bookings/history")
+    public ResponseEntity<Page<BookingDto>> getMyBookingHistory(
+            Authentication authentication,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        log.info("Rider request: getMyBookingHistory");
+        return ResponseEntity.ok(riderService.getMyBookingHistory(authentication, pageable));
+    }
 }

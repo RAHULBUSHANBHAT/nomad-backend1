@@ -1,11 +1,24 @@
     package com.cts.driver.service;
-    import com.cts.driver.model.VerificationType;
+    import java.util.Collections;
+    import java.util.List;
+    import java.util.stream.Collectors;
+
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.data.domain.Page;
+    import org.springframework.data.domain.PageImpl;
+    import org.springframework.data.domain.Pageable;
+    import org.springframework.stereotype.Service;
+    import org.springframework.transaction.annotation.Transactional;
+
     import com.cts.driver.client.BookingClient;
     import com.cts.driver.client.UserClient;
-    import com.cts.driver.dto.*;
+    import com.cts.driver.dto.DriverProfileDto;
+    import com.cts.driver.dto.RideOfferDto;
+    import com.cts.driver.dto.UpdateDriverStatusDto;
+    import com.cts.driver.dto.UpdateVerificationDto;
     import com.cts.driver.dto.client.BookingAssignmentDto;
     import com.cts.driver.dto.client.UserDto;
-    import com.cts.driver.exception.OfferException;
+    import com.cts.driver.exception.OfferException; // Required for single result page
     import com.cts.driver.exception.ResourceNotFoundException;
     import com.cts.driver.mapper.DriverMapper;
     import com.cts.driver.mapper.RideOfferMapper;
@@ -13,20 +26,12 @@
     import com.cts.driver.model.RideOffer;
     import com.cts.driver.model.RideOfferStatus;
     import com.cts.driver.model.Vehicle;
+    import com.cts.driver.model.VerificationType;
     import com.cts.driver.repository.DriverRepository;
-    import com.cts.driver.repository.RideOfferRepository;
-    import com.cts.driver.repository.VehicleRepository;
+import com.cts.driver.repository.RideOfferRepository;
+import com.cts.driver.repository.VehicleRepository;
 
-    import lombok.extern.slf4j.Slf4j;
-
-    import org.springframework.beans.factory.annotation.Autowired;
-    import org.springframework.data.domain.Page;
-    import org.springframework.data.domain.Pageable;
-    import org.springframework.stereotype.Service;
-    import org.springframework.transaction.annotation.Transactional;
-
-    import java.util.List;
-    import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 
     @Service
@@ -144,15 +149,45 @@
         
         // --- Admin Methods ---
         
-        public Page<DriverProfileDto> getAllDrivers(Pageable pageable) {
-            log.info("Admin request: Fetching all drivers, page {} size {}", pageable.getPageNumber(), pageable.getPageSize());
-            Page<Driver> driverPage = driverRepository.findAll(pageable);
+      @Transactional(readOnly = true)
+    public Page<DriverProfileDto> getAllDrivers(Pageable pageable, String filterType, String searchContent) {
+        
+        // --- CASE 1: Filtering is Active ---
+        if (filterType != null && searchContent != null && !searchContent.isEmpty()) {
+            log.info("Admin searching Driver. Type: {}, Content: {}", filterType, searchContent);
             
-            return driverPage.map(driver -> {
-                UserDto user = userClient.getUserById(driver.getUserId());
-                return driverMapper.toDriverProfileDto(driver, user);
-            });
+            Driver driver = null;
+
+            // 1. Search Local Database
+            if ("AADHAR".equalsIgnoreCase(filterType)) {
+                driver = driverRepository.findByAadharNumber(searchContent).orElse(null);
+            } 
+            else if ("LICENSE".equalsIgnoreCase(filterType)) {
+                driver = driverRepository.findByLicenseNumber(searchContent).orElse(null);
+            }
+
+            // 2. If driver not found, return empty
+            if (driver == null) {
+                return Page.empty();
+            }
+
+            // 3. If driver found, we MUST fetch User details to show the name/email
+            UserDto user = userClient.getUserById(driver.getUserId());
+            
+            DriverProfileDto dto = driverMapper.toDriverProfileDto(driver, user);
+            return new PageImpl<>(Collections.singletonList(dto), pageable, 1);
         }
+
+        // --- CASE 2: No Filter (Return All Drivers) ---
+        log.info("Admin request: Fetching all drivers");
+        Page<Driver> driverPage = driverRepository.findAll(pageable);
+        
+        return driverPage.map(driver -> {
+            // N+1 issue (acceptable for admin panels with small page sizes)
+            UserDto user = userClient.getUserById(driver.getUserId());
+            return driverMapper.toDriverProfileDto(driver, user);
+        });
+    }
 
         public Page<Driver> getVerificationQueue(Pageable pageable) {
             log.info("Admin request: Fetching verification queue");
