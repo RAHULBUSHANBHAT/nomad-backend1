@@ -48,7 +48,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private Status status = Status.PENDING;
+    private Status status = Status.ACTIVE;
 
     @Column(name = "rating")
     private float rating = 0.0f;

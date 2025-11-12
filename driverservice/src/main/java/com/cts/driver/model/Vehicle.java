@@ -38,11 +38,20 @@ public class Vehicle {
     @Column(name = "is_rc_verified")
     private boolean isRcVerified = false;
 
+    @Column(name = "puc_number")
+    private String pucNumber;
+
     @Column(name = "puc_expiry")
     private LocalDate pucExpiry;
 
+    @Column(name = "is_puc_verified")
+    private boolean isPucVerified = false;
+
     @Column(name = "insurance_policy_number")
     private String insurancePolicyNumber;
+
+    @Column(name = "is_insurance_verified")
+    private boolean isInsuranceVerified = false;
 
     @Column(name = "insurance_expiry")
     private LocalDate insuranceExpiry;

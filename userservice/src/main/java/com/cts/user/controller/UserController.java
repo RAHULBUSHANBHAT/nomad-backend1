@@ -3,6 +3,7 @@ package com.cts.user.controller;
 import com.cts.user.dto.RegisterUserDto;
 import com.cts.user.dto.UpdateUserDto;
 import com.cts.user.dto.UserDto;
+import com.cts.user.dto.UserStatusUpdateDto;
 import com.cts.user.service.UserServiceImpl;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -73,6 +74,15 @@ public class UserController {
         log.info("Admin request: Received for getAllUsers, page {} size {}", pageable.getPageNumber(), pageable.getPageSize());
         return ResponseEntity.ok(userService.getAllUsers(pageable));
     }
+    @PutMapping("/admin/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDto> updateUserStatus(
+            @PathVariable String id, 
+            @Valid @RequestBody UserStatusUpdateDto dto) {
+        
+        log.info("Admin request: Update status for user {}", id);
+        return ResponseEntity.ok(userService.updateUserStatus(id, dto));
+    }
 
     /**
      * Admin-only: Get any user by their ID.
@@ -94,5 +104,12 @@ public class UserController {
     public ResponseEntity<UserDto> getUserProfile(@PathVariable String id) {
         log.info("Fetching user profile for ID: {}", id);
         return ResponseEntity.ok(userService.getUserById(id));
+    }
+    @GetMapping("/admin/riders")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<UserDto>> getAllRiders(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        log.info("Admin request: Received for getAllRiders, page {} size {}", pageable.getPageNumber(), pageable.getPageSize());
+        return ResponseEntity.ok(userService.getAllRiders(pageable));
     }
 }

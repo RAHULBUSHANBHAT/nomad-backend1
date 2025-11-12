@@ -1,0 +1,64 @@
+server:
+  port: 8085 # Port for the wallet service
+
+spring:
+  application:
+    name: WALLET-SERVICE
+
+  # --- MYSQL CONFIG ---
+  datasource:
+    url: jdbc:mysql://localhost:3306/wallet_db?createDatabaseIfNotExist=true
+    username: root
+    password: admin # Change to your MySQL password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # Kafka Consumer properties
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092
+      # We create a new, clean group ID for this service
+      group-id: wallet-service-group-v2
+      auto-offset-reset: earliest
+      enable.auto.commit: false # We will use the robust error handler
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+
+      properties:
+        # Tell the EHD which inner deserializer to use
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+
+# Kafka Topic Names
+app:
+  kafka:
+    topics:
+      user-events: user-events-topic # Topic we listen to
+
+  company-wallet-user-id: "COMPANY_INTERNAL" # A special ID for the company's wallet
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    # --- CRITICAL FIX ---
+    prefer-ip-address: true
+# JWT Configuration (for *generating* tokens)
+# This key MUST EXACTLY match the 'gateway.secret-key'
+gateway:
+  secret-key: ${GATEWAY_SECRET_KEY:mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
+
+# We need an ID for the "company" wallet to collect commission
+
+# Logging
+logging:
+  level:
+    com.cts.wallet: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web.filter: DEBUG

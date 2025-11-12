@@ -25,3 +25,4 @@ public class UserDto {
     private int totalRatings;
     private LocalDateTime createdAt;
 }
+

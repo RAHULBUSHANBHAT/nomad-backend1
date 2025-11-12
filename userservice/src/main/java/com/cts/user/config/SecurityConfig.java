@@ -42,11 +42,11 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless
             .authorizeHttpRequests(authz -> authz
                 // 1. The registration endpoint is public.
-                .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
+                
                 
                 // 2. All other endpoints (public, admin, AND internal)
                 //    must be authenticated.
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
             // 3. We apply our filters IN ORDER.
             

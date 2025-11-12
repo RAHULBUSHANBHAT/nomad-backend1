@@ -52,6 +52,39 @@
       "mainClass": "com.cts.driver.DriverserviceApplication",
       "projectName": "driverservice",
       "args": "",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=64141 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=driverservice"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-RiderServiceApplication<riderservice>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.cts.rider.RiderServiceApplication",
+      "projectName": "riderservice",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=57014 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=riderservice"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-WalletServiceApplication<walletservice>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.cts.wallet.WalletServiceApplication",
+      "projectName": "walletservice",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=53888 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=walletservice"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-BookingServiceApplication<bookingservice>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.cts.booking.BookingServiceApplication",
+      "projectName": "bookingservice",
+      "args": "",
       "envFile": "${workspaceFolder}/.env"
     }
   ]

@@ -21,4 +21,7 @@ public class VehicleDto {
     private LocalDate pucExpiry;
     private String insurancePolicyNumber;
     private LocalDate insuranceExpiry;
+    private String pucNumber;
+    private boolean isPucVerified;
+    private boolean isInsuranceVerified;
 }

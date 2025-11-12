@@ -13,6 +13,7 @@ spring:
           "[/**]":
             allowed-origins:
               - "http://localhost:5173"
+              - "http://localhost:5174"
               - "http://localhost:3000"
             allowed-methods:
               - GET
@@ -43,30 +44,123 @@ spring:
           uri: lb://USER-SERVICE
           predicates:
             - Path=/api/v1/users/register
+
+        - id: ADMIN-DASHBOARD-SERVICE
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/v1/admin/dashboard
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
+
+        # --- NEW ROUTE FOR ADMIN FARES ---
+        - id: ADMIN-FARES-SERVICE
+          uri: lb://BOOKING-SERVICE
+          predicates:
+            - Path=/api/v1/admin/fares/**
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
+
+        # --- NEW ROUTE FOR ADMIN TRANSACTIONS ---
+        - id: ADMIN-TRANSACTIONS-SERVICE
+          uri: lb://WALLET-SERVICE
+          predicates:
+            - Path=/api/v1/admin/transactions
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
+
+        # --- NEW ROUTE FOR ADMIN WALLETS ---
+        - id: ADMIN-WALLET-SERVICE
+          uri: lb://WALLET-SERVICE
+          predicates:
+            - Path=/api/v1/admin/wallets/user/**
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
+
+        # --- NEW ROUTE FOR BOOKING PAYMENT ---
+        - id: BOOKING-PAY-SERVICE
+          uri: lb://BOOKING-SERVICE
+          predicates:
+            - Path=/api/v1/bookings/{id}/pay
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [RIDER] # Only the rider can pay
+
+        # --- NEW ROUTES FOR INDIVIDUAL VERIFICATION ---
+        - id: ADMIN-DRIVER-APPROVE-PAN
+          uri: lb://DRIVER-SERVICE
+          predicates:
+            - Path=/api/v1/admin/drivers/{id}/approve/pan
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
+        - id: ADMIN-DRIVER-APPROVE-LICENSE
+          uri: lb://DRIVER-SERVICE
+          predicates:
+            - Path=/api/v1/admin/drivers/{id}/approve/license
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
           # No filters = public
 
         # # ============================================
         # # ADMIN ROUTES (Protected - ADMIN role only) DO IT FROM HERE
         # # ============================================
-        # - id: ADMIN-USER-SERVICE
-        #   uri: lb://USER-SERVICE
-        #   predicates:
-        #     - Path=/api/v1/admin/users/**
-        #   filters:
-        #     - JwtAuthenticationFilter
-        #     - name: RoleAuthorizationFilter
-        #       args:
-        #         allowedRoles: [ADMIN]
+        - id: ADMIN-USER-SERVICE
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=Path=/api/v1/users/admin/**
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
+        - id: ADMIN-FARES-SERVICE
+          uri: lb://BOOKING-SERVICE
+          predicates:
+            - Path=/api/v1/admin/fares/**
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
 
-        # - id: ADMIN-DRIVER-SERVICE
-        #   uri: lb://DRIVER-SERVICE
-        #   predicates:
-        #     - Path=/api/v1/admin/drivers/**
-        #   filters:
-        #     - JwtAuthenticationFilter
-        #     - name: RoleAuthorizationFilter
-        #       args:
-        #         allowedRoles: [ADMIN]
+        - id: ADMIN-DRIVER-SERVICE
+          uri: lb://DRIVER-SERVICE
+          predicates:
+            - Path=/api/v1/drivers/admin/**
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
+
+        - id: ADMIN-VEHICLE-SERVICE
+          uri: lb://DRIVER-SERVICE
+          predicates:
+            - Path=/api/v1/drivers/admin/vehicles/**
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
 
         # # ... other admin routes ...
 
@@ -97,53 +191,64 @@ spring:
         - id: ADMIN-DRIVER-SERVICE
           uri: lb://DRIVER-SERVICE
           predicates:
-            - Path=/api/v1/admin/drivers/**
+            - Path=/api/v1/drivers/admin/**
           filters:
             - JwtAuthenticationFilter
             - name: RoleAuthorizationFilter
               args:
                 allowedRoles: [ADMIN]
 
-        # - id: DRIVER-BOOKING-SERVICE
-        #   uri: lb://BOOKING-SERVICE
-        #   predicates:
-        #     - Path=/api/v1/driver/bookings/**
-        #   filters:
-        #     - JwtAuthenticationFilter
-        #     - name: RoleAuthorizationFilter
-        #       args:
-        #         allowedRoles: [DRIVER]
+        - id: DRIVER-BOOKING-SERVICE
+          uri: lb://BOOKING-SERVICE
+          predicates:
+            - Path=/api/v1/driver/bookings/**
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [DRIVER]
 
-        # # ============================================
-        # # RIDER ROUTES (Protected - RIDER role)
-        # # ============================================
-        # - id: RIDER-BOOKING-SERVICE
-        #   uri: lb://BOOKING-SERVICE
-        #   predicates:
-        #     - Path=/api/v1/bookings/**
-        #   filters:
-        #     - JwtAuthenticationFilter
-        #     - name: RoleAuthorizationFilter
-        #       args:
-        #         allowedRoles: [RIDER, DRIVER]
+        # ============================================
+        # RIDER ROUTES (Protected - RIDER role)
+        # ============================================
+        - id: RIDER-BOOKING-SERVICE
+          uri: lb://BOOKING-SERVICE
+          predicates:
+            - Path=/api/v1/bookings/**
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [RIDER, DRIVER]
 
-        # - id: RIDER-SERVICE
-        #   uri: lb://RIDER-SERVICE
-        #   predicates:
-        #     - Path=/api/v1/riders/**
-        #   filters:
-        #     - JwtAuthenticationFilter
-        #     - name: RoleAuthorizationFilter
-        #       args:
-        #         allowedRoles: [RIDER]
+        - id: RIDER-SERVICE
+          uri: lb://RIDER-SERVICE
+          predicates:
+            - Path=/api/v1/riders/**
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [RIDER]
 
-        # - id: WALLET-SERVICE
-        #   uri: lb://WALLET-SERVICE
-        #   predicates:
-        #     - Path=/api/v1/wallets/**
-        #   filters:
-        #     - JwtAuthenticationFilter
-        #     # DRIVER or RIDER can see their own wallet
+        - id: WALLET-SERVICE
+          uri: lb://WALLET-SERVICE
+          predicates:
+            - Path=/api/v1/wallets/**
+          filters:
+            - JwtAuthenticationFilter
+
+        - id: ADMIN-WALLET-SERVICE
+          uri: lb://WALLET-SERVICE
+          predicates:
+            # Matches all admin-specific wallet paths
+            - Path=/api/v1/admin/wallets/**, /api/v1/admin/transactions
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
+            # DRIVER or RIDER can see their own wallet
 
         # ============================================
         # SECURITY: BLOCK INTERNAL ENDPOINTS (MUST BE LAST)
@@ -179,3 +284,4 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     com.cts.apigateway: DEBUG
+    com.cts.filter: DEBUG

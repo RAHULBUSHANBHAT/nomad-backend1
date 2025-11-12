@@ -1,4 +1,4 @@
-package com.cts.rider.riderservice;
+package com.cts.rider;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

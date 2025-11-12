@@ -54,4 +54,14 @@ public class VehicleController {
         vehicleService.deleteVehicle(getUserId(authentication), vehicleId);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{vehicleId}")
+    @PreAuthorize("@securityService.isVehicleOwner(authentication, #vehicleId)") // Layer 3
+    public ResponseEntity<VehicleDto> updateVehicle(Authentication authentication, 
+                                                    @PathVariable String vehicleId,
+                                                    @Valid @RequestBody VehicleDto vehicleDto) {
+        log.info("Driver {} updating vehicle {}", getUserId(authentication), vehicleId);
+        VehicleDto updatedVehicle = vehicleService.updateVehicle(getUserId(authentication), vehicleId, vehicleDto);
+        return ResponseEntity.ok(updatedVehicle);
+    }
 }

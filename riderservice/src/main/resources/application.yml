@@ -1,0 +1,39 @@
+server:
+  port: 8084 # Port for the rider service
+
+spring:
+  application:
+    name: RIDER-SERVICE
+  datasource:
+    url: jdbc:mysql://localhost:3306/wallet_db?createDatabaseIfNotExist=true
+    username: root
+    password: admin # Change to your MySQL password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+# Eureka Client Config
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true # Use IP for Eureka registration
+
+# This key MUST EXACTLY match the 'gateway.secret-key' from the api-gateway's yml
+gateway:
+  secret-key: ${GATEWAY_SECRET_KEY:mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
+
+# Logging
+logging:
+  level:
+    com.cts.rider: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web.filter: DEBUG
+    com.cts.rider.client: DEBUG
+    com.cts.rider.service: DEBUG

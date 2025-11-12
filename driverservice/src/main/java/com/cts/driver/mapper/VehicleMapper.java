@@ -17,6 +17,12 @@ public class VehicleMapper {
         dto.setPucExpiry(entity.getPucExpiry());
         dto.setInsurancePolicyNumber(entity.getInsurancePolicyNumber());
         dto.setInsuranceExpiry(entity.getInsuranceExpiry());
+        dto.setPucNumber(entity.getPucNumber());
+        dto.setPucExpiry(entity.getPucExpiry());
+        dto.setPucVerified(entity.isPucVerified());
+        dto.setInsurancePolicyNumber(entity.getInsurancePolicyNumber());
+        dto.setInsuranceVerified(entity.isInsuranceVerified());
+        dto.setInsuranceExpiry(entity.getInsuranceExpiry());
         return dto;
     }
 
@@ -30,6 +36,10 @@ public class VehicleMapper {
         entity.setPucExpiry(dto.getPucExpiry());
         entity.setInsurancePolicyNumber(dto.getInsurancePolicyNumber());
         entity.setInsuranceExpiry(dto.getInsuranceExpiry());
+        entity.setPucNumber(dto.getPucNumber());
+        entity.setPucVerified(dto.isPucVerified());
+        entity.setInsurancePolicyNumber(dto.getInsurancePolicyNumber());
+        entity.setInsuranceVerified(dto.isInsuranceVerified());
         return entity;
     }
 }

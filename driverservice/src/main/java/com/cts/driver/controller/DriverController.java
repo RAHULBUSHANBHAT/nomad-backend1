@@ -5,6 +5,7 @@ import com.cts.driver.dto.RideOfferDto;
 import com.cts.driver.dto.UpdateDriverStatusDto;
 import com.cts.driver.dto.UpdateVerificationDto;
 import com.cts.driver.model.Driver;
+import com.cts.driver.model.VerificationType;
 import com.cts.driver.service.DriverServiceImpl;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -82,10 +83,21 @@ public class DriverController {
         return ResponseEntity.ok(driverService.getVerificationQueue(pageable));
     }
     
-    @PostMapping("/admin/approve/{driverId}")
+   @PostMapping("/admin/approve/{driverId}/{type}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> approveDriver(@PathVariable String driverId) {
-        driverService.approveDriver(driverId);
+    public ResponseEntity<DriverProfileDto> approveDocument(
+            @PathVariable String driverId, 
+            @PathVariable VerificationType type) {
+        
+        log.info("Admin request: Approving {} for driver {}", type, driverId);
+        DriverProfileDto updatedDriver = driverService.approveVerification(driverId, type);
+        return ResponseEntity.ok(updatedDriver);
+    }
+    
+    @PostMapping("/admin/vehicles/{vehicleId}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> approveVehicle(@PathVariable String vehicleId) {
+        driverService.approveVehicle(vehicleId);
         return ResponseEntity.ok().build();
     }
 }

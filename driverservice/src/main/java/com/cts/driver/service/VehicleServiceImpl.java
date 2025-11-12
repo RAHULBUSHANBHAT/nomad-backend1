@@ -56,4 +56,32 @@ public class VehicleServiceImpl {
         }
         driverRepository.save(driver); // orphanRemoval=true handles delete
     }
+
+    @Transactional
+    public VehicleDto updateVehicle(String userId, String vehicleId, VehicleDto vehicleDto) {
+        // First, find the driver to ensure security
+        Driver driver = driverRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Driver profile not found"));
+        
+        // Find the specific vehicle in their list
+        Vehicle vehicle = driver.getVehicles().stream()
+                .filter(v -> v.getId().equals(vehicleId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found or does not belong to this driver"));
+
+        // Update the vehicle's properties
+        // We only allow changing these fields
+        vehicle.setVehicleType(vehicleDto.getVehicleType());
+        vehicle.setRegistrationNumber(vehicleDto.getRegistrationNumber());
+        vehicle.setModel(vehicleDto.getModel());
+        vehicle.setRcNumber(vehicleDto.getRcNumber());
+        vehicle.setPucExpiry(vehicleDto.getPucExpiry());
+        vehicle.setInsurancePolicyNumber(vehicleDto.getInsurancePolicyNumber());
+        vehicle.setInsuranceExpiry(vehicleDto.getInsuranceExpiry());
+        
+        // Note: isVerified fields are NOT updated here. They are admin-only.
+        
+        Vehicle updatedVehicle = vehicleRepository.save(vehicle);
+        return vehicleMapper.toDto(updatedVehicle);
+    }
 }

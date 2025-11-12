@@ -4,12 +4,11 @@ import com.cts.driver.config.KafkaConsumerConfig;
 import com.cts.driver.dto.UpdateDriverStatusDto;
 import com.cts.driver.model.Driver;
 import com.cts.driver.service.DriverServiceImpl;
-// import lombok.extern.slf4j.Slf4j;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+// import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -26,7 +25,11 @@ private static final Logger log = LoggerFactory.getLogger(KafkaConsumerConfig.cl
      * Internal endpoint for booking-service to set a
      * driver's availability (e.g., after a ride is completed).
      * This uses the DRIVER'S *USER* ID.
+     * 
+     * 
      */
+
+    
     @PostMapping("/{userId}/availability")
     public ResponseEntity<Boolean> setAvailability(@PathVariable String userId, @RequestParam boolean available) {
         log.info("Internal request: Setting availability for user {} to {}", userId, available);
@@ -38,4 +41,10 @@ private static final Logger log = LoggerFactory.getLogger(KafkaConsumerConfig.cl
         
         return ResponseEntity.ok(driverService.updateDriverStatus(userId, dto));
     }
+
+     @GetMapping("/count")
+    public long getDriverCount() {
+        log.info("Internal request: getDriverCount");
+        return driverService.getDriverCount();
+}
 }

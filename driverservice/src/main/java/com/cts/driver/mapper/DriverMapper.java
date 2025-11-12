@@ -24,8 +24,6 @@ public class DriverMapper {
                 .currentCity(driver.getCurrentCity())
                 .aadharNumber(driver.getAadharNumber())
                 .isAadhaarVerified(driver.isAadhaarVerified())
-                .panNumber(driver.getPanNumber())
-                .isPanVerified(driver.isPanVerified())
                 .licenseNumber(driver.getLicenseNumber())
                 .isDriverLicenseVerified(driver.isDriverLicenseVerified())
                 .driverLicenseExpiry(driver.getDriverLicenseExpiry())

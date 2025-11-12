@@ -42,6 +42,7 @@ app:
   kafka:
     topics:
       user-events: user-events-topic
+  company-wallet-user-id: "COMPANY_INTERNAL"
 jwt:
   secret: ${JWT_SECRET_KEY:mySecretKey12345sadsadkjksajdkjsalkdlksalkdmySecretKey12345}
 gateway:
@@ -51,5 +52,6 @@ gateway:
 logging:
   level:
     com.cts.user: DEBUG
+    com.cts.user.service: DEBUG
     org.springframework.security: INFO
     org.springframework.web.filter: DEBUG # To see filters in action

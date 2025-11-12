@@ -41,5 +41,6 @@ public class RideOffer {
     public RideOffer(String bookingId, String driverId) {
         this.bookingId = bookingId;
         this.driverId = driverId;
+        this.status = RideOfferStatus.PENDING;
     }
 }
