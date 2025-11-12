@@ -1,6 +1,7 @@
 package com.cts.booking.controller;
 
 import com.cts.booking.dto.BookingDto;
+import com.cts.booking.dto.BookingFiltersDto;
 import com.cts.booking.dto.CreateBookingRequestDto;
 import com.cts.booking.dto.AddRatingRequestDto; // <-- ADD
 import com.cts.booking.service.BookingService;
@@ -52,11 +53,12 @@ public class BookingController {
 
     @GetMapping("/bookings/me/history")
     @PreAuthorize("hasRole('RIDER')")
-    public ResponseEntity<Page<BookingDto>> getMyBookingHistory(
+    public ResponseEntity<Page<BookingDto>> getRiderBookingHistory(
             Authentication authentication,
+            @Valid @RequestParam BookingFiltersDto bookingFiltersDto,
             @PageableDefault(size = 20, sort = "requestTime", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("Rider {} fetching booking history", getUserId(authentication));
-        return ResponseEntity.ok(bookingService.getBookingsForRider(getUserId(authentication), pageable));
+        return ResponseEntity.ok(bookingService.getBookingsForRider(getUserId(authentication), bookingFiltersDto, pageable));
     }
 
     /**
@@ -68,7 +70,6 @@ public class BookingController {
     public ResponseEntity<Void> addFeedback(Authentication authentication,
                                             @PathVariable("id") String bookingId,
                                             @Valid @RequestBody AddRatingRequestDto dto) {
-        
         String riderUserId = getUserId(authentication);
         log.info("Rider {} is leaving feedback for booking {}", riderUserId, bookingId);
         
@@ -82,9 +83,10 @@ public class BookingController {
     @PreAuthorize("hasRole('DRIVER')")
     public ResponseEntity<Page<BookingDto>> getMyDriverBookingHistory(
             Authentication authentication,
+            @Valid @RequestParam BookingFiltersDto bookingFiltersDto,
             @PageableDefault(size = 20, sort = "requestTime", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("Driver {} fetching booking history", getUserId(authentication));
-        return ResponseEntity.ok(bookingService.getBookingsForDriver(getUserId(authentication), pageable));
+        return ResponseEntity.ok(bookingService.getBookingsForDriver(getUserId(authentication), bookingFiltersDto, pageable));
     }
 
     // Note: The "accept" endpoint is on the DRIVER-SERVICE, not here.

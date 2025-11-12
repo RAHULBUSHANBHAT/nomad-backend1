@@ -9,10 +9,10 @@ import lombok.Data;
 
 @Data
 @Builder
-public class TransactionDto {
+public class WalletTransactionDto {
     private String id;
     private double amount;
     private TransactionType type;
-    private String relatedBookingId;
+    private String userId;
     private LocalDateTime timestamp;
 }

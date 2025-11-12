@@ -5,6 +5,7 @@ import com.cts.booking.client.UserClient;
 import com.cts.booking.client.WalletClient;
 import com.cts.booking.dto.AddRatingRequestDto; 
 import com.cts.booking.dto.BookingDto;
+import com.cts.booking.dto.BookingFiltersDto;
 import com.cts.booking.dto.CreateBookingRequestDto;
 import com.cts.booking.dto.FareConfigDto;
 import com.cts.booking.dto.client.RidePaymentRequestDto;
@@ -29,8 +30,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.cts.booking.model.BookingStatus;
 import java.util.List;
-
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 
 @Service
@@ -253,15 +255,53 @@ public class BookingService {
     
     // --- Other Methods ---
     @Transactional(readOnly = true)
-    public Page<BookingDto> getBookingsForRider(String riderUserId, Pageable pageable) {
-        return bookingRepository.findByRiderUserId(riderUserId, pageable)
+    public Page<BookingDto> getBookingsForRider(String riderUserId, BookingFiltersDto bookingFiltersDto, Pageable pageable) {
+        String searchTerm = bookingFiltersDto.getSearchTerm();
+        String filterType = bookingFiltersDto.getFilterType();
+        
+        return switch (filterType.toLowerCase()) {
+            case "status" ->
+                bookingRepository.findByRiderIdAndBookingStatus(riderUserId, BookingStatus.valueOf(searchTerm.toUpperCase()), pageable)
                 .map(bookingMapper::toDto);
+            case "pickup_address" ->
+                bookingRepository.findByRiderIdAndPickupLocationNameContainingIgnoreCase(riderUserId, searchTerm, pageable)
+                .map(bookingMapper::toDto);
+            case "dropoff_address" ->
+                bookingRepository.findByRiderIdAndDropoffLocationNameContainingIgnoreCase(riderUserId, searchTerm, pageable)
+                .map(bookingMapper::toDto);
+            case "date" -> {
+                LocalDate date = LocalDate.parse(searchTerm); // Expects "YYYY-MM-DD"
+                yield bookingRepository.findByRiderIdAndCreatedAtBetween(riderUserId, date.atStartOfDay(), date.atTime(LocalTime.MAX), pageable)
+                .map(bookingMapper::toDto);
+            }
+            default -> bookingRepository.findByRiderUserId(riderUserId, pageable)
+            .map(bookingMapper::toDto);
+        };
     }
 
     @Transactional(readOnly = true)
-    public Page<BookingDto> getBookingsForDriver(String driverUserId, Pageable pageable) {
-        return bookingRepository.findByDriverUserId(driverUserId, pageable)
+    public Page<BookingDto> getBookingsForDriver(String driverUserId, BookingFiltersDto bookingFiltersDto, Pageable pageable) {
+        String searchTerm = bookingFiltersDto.getSearchTerm();
+        String filterType = bookingFiltersDto.getFilterType();
+        
+        return switch (filterType.toLowerCase()) {
+            case "status" ->
+                bookingRepository.findByDriverIdAndBookingStatus(driverUserId, BookingStatus.valueOf(searchTerm.toUpperCase()), pageable)
                 .map(bookingMapper::toDto);
+            case "pickup_address" ->
+                bookingRepository.findByDriverIdAndPickupLocationNameContainingIgnoreCase(driverUserId, searchTerm, pageable)
+                .map(bookingMapper::toDto);
+            case "dropoff_address" ->
+                bookingRepository.findByDriverIdAndDropoffLocationNameContainingIgnoreCase(driverUserId, searchTerm, pageable)
+                .map(bookingMapper::toDto);
+            case "date" -> {
+                LocalDate date = LocalDate.parse(searchTerm); // Expects "YYYY-MM-DD"
+                yield bookingRepository.findByDriverIdAndCreatedAtBetween(driverUserId, date.atStartOfDay(), date.atTime(LocalTime.MAX), pageable)
+                .map(bookingMapper::toDto);
+            }
+            default -> bookingRepository.findByDriverUserId(driverUserId, pageable)
+            .map(bookingMapper::toDto);
+        };
     }
     
     @Transactional(readOnly = true)

@@ -1,4 +1,5 @@
 package com.cts.wallet.controller;
+
 import com.cts.wallet.dto.DepositRequestDto; // <-- ADD
 import jakarta.validation.Valid; // <-- ADD
 import org.springframework.web.bind.annotation.GetMapping;
@@ -6,9 +7,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping; // <-- ADD
 import org.springframework.web.bind.annotation.RequestBody; // <-- ADD
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.cts.wallet.dto.TransactionDto;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.cts.wallet.dto.WalletTransactionDto;
+import com.cts.wallet.dto.TransactionFilterDto;
 import com.cts.wallet.dto.WalletDto;
+import com.cts.wallet.dto.WithdrawRequestDto;
+import com.cts.wallet.model.RideTransaction;
 import com.cts.wallet.service.WalletService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +23,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -46,7 +48,7 @@ public class WalletController {
 
     @GetMapping("/wallets/me/transactions")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<TransactionDto>> getMyTransactions(
+    public ResponseEntity<Page<WalletTransactionDto>> getMyTransactions(
             Authentication authentication,
             @PageableDefault(size = 20, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("Fetching transactions for user: {}", authentication.getName());
@@ -65,15 +67,38 @@ public class WalletController {
         return ResponseEntity.ok(updatedWallet);
     }
 
+    @PostMapping("/wallets/me/withdraw")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<WalletDto> withdrawFunds(
+            Authentication authentication, 
+            @Valid @RequestBody WithdrawRequestDto withdrawRequest) {
+        
+        String userId = getUserId(authentication);
+        log.info("Received withdrawal request of {} for user {}", withdrawRequest.getAmount(), userId);
+        WalletDto updatedWallet = walletService.withdrawFunds(userId, withdrawRequest.getAmount());
+        return ResponseEntity.ok(updatedWallet);
+    }
+
     // --- ADMIN ENDPOINTS (as requested) ---
 
     @GetMapping("/admin/wallets/transactions")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<TransactionDto>> getAllTransactions(
-            @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ResponseEntity<Page<WalletTransactionDto>> getAllWalletTransactions(
+            @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable,
+            @Valid @RequestParam TransactionFilterDto filters) {
         log.info("Admin request: Fetching all transactions");
-        return ResponseEntity.ok(walletService.getAllTransactions(pageable));
+        return ResponseEntity.ok(walletService.getAllWalletTransactions(filters, pageable));
     }
+
+    @GetMapping("/admin/wallets/transactions")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<RideTransaction>> getAllRideTransactions(
+            @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable,
+            @Valid @RequestParam TransactionFilterDto filters) {
+        log.info("Admin request: Fetching all transactions");
+        return ResponseEntity.ok(walletService.getAllRideTransactions(filters, pageable));
+    }
+    
     @GetMapping("/admin/wallets/user/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<WalletDto> getWalletByUserIdForAdmin(@PathVariable String userId) {

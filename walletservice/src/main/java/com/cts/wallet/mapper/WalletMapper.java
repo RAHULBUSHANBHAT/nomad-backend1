@@ -1,7 +1,8 @@
 package com.cts.wallet.mapper;
 
-import com.cts.wallet.dto.TransactionDto;
+import com.cts.wallet.dto.WalletTransactionDto;
 import com.cts.wallet.dto.WalletDto;
+import com.cts.wallet.model.RideTransaction;
 import com.cts.wallet.model.Wallet;
 import com.cts.wallet.model.WalletTransaction;
 import org.springframework.stereotype.Component;
@@ -19,12 +20,12 @@ public class WalletMapper {
                 .build();
     }
 
-    public TransactionDto toTransactionDto(WalletTransaction tx) {
-        return TransactionDto.builder()
+    public WalletTransactionDto toWalletTransactionDto(WalletTransaction tx) {
+        return WalletTransactionDto.builder()
                 .id(tx.getId())
                 .amount(tx.getAmount())
                 .type(tx.getType())
-                .relatedBookingId(tx.getRelatedBookingId())
+                .userId(tx.getUserId())
                 .timestamp(tx.getTimestamp())
                 .build();
     }
