@@ -51,6 +51,13 @@ public class BookingController {
         return new ResponseEntity<>(newBooking, HttpStatus.CREATED);
     }
 
+    @GetMapping("/bookings/vehicle-types/{city}")
+    @PreAuthorize("hasRole('RIDER')")
+    public ResponseEntity<?> getAvailableVehiclesCount(@PathVariable String city) {
+        log.info("Fetching all available vehicle types in city {}", city);
+        return new ResponseEntity<>(bookingService.getVehicleAvailability(city), HttpStatus.OK);
+    }
+
     @GetMapping("/bookings/me/history")
     @PreAuthorize("hasRole('RIDER')")
     public ResponseEntity<Page<BookingDto>> getRiderBookingHistory(

@@ -24,11 +24,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.cts.booking.model.BookingStatus;
 import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -89,11 +89,15 @@ public class BookingService {
         
         return bookingMapper.toDto(savedBooking);
     }
+
+    public ResponseEntity<?> getVehicleAvailability(String city) {
+        return driverClient.getAvailableVehiclesInCity(city);
+    }
     
     /**
      * Flow 2: Driver completes a ride (The Payment Flow)
      */
-   @Transactional
+    @Transactional
     public BookingDto completeRide(String driverUserId, String bookingId) {
         log.info("Driver {} is completing booking {}", driverUserId, bookingId);
         Booking booking = findBooking(bookingId);

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.cts.driver.model.Driver;
+import com.cts.driver.model.Vehicle;
 import com.cts.driver.model.VehicleType;
 
 @Repository

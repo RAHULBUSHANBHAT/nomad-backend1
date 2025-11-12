@@ -2,6 +2,7 @@ package com.cts.driver.controller;
 
 import com.cts.driver.config.KafkaConsumerConfig;
 import com.cts.driver.dto.VehicleDto;
+import com.cts.driver.dto.VehicleTypeCountDto;
 import com.cts.driver.service.VehicleServiceImpl;
 import jakarta.validation.Valid;
 // import lombok.extern.slf4j.Slf4j;

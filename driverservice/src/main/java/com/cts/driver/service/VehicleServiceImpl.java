@@ -1,16 +1,19 @@
 package com.cts.driver.service;
 
 import com.cts.driver.dto.VehicleDto;
+import com.cts.driver.dto.VehicleTypeCountDto;
 import com.cts.driver.exception.ResourceNotFoundException;
 import com.cts.driver.mapper.VehicleMapper;
 import com.cts.driver.model.Driver;
 import com.cts.driver.model.Vehicle;
+import com.cts.driver.model.VehicleType;
 import com.cts.driver.repository.DriverRepository;
 import com.cts.driver.repository.VehicleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -83,5 +86,10 @@ public class VehicleServiceImpl {
         
         Vehicle updatedVehicle = vehicleRepository.save(vehicle);
         return vehicleMapper.toDto(updatedVehicle);
+    }
+
+    @Transactional(readOnly = true)
+    public List<VehicleTypeCountDto> getAvailableVehicleCountsByCity(String city) {
+        return vehicleRepository.getAvailableVehicleCountsByCity(city);
     }
 }
