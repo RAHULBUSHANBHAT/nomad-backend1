@@ -1,6 +1,6 @@
 package com.cts.wallet.mapper;
 
-import com.cts.wallet.dto.TransactionDto;
+import com.cts.wallet.dto.WalletTransactionDto;
 import com.cts.wallet.model.WalletTransaction;
 import org.springframework.stereotype.Component;
 
@@ -10,12 +10,12 @@ public class TransactionMapper {
     /**
      * Converts a WalletTransaction (Entity) to a TransactionDto (API Response).
      */
-    public TransactionDto toTransactionDto(WalletTransaction tx) {
-        return TransactionDto.builder()
+    public WalletTransactionDto toTransactionDto(WalletTransaction tx) {
+        return WalletTransactionDto.builder()
                 .id(tx.getId())
                 .amount(tx.getAmount())
                 .type(tx.getType())
-                .relatedBookingId(tx.getRelatedBookingId())
+                .userId(tx.getUserId())
                 .timestamp(tx.getTimestamp())
                 .build();
     }

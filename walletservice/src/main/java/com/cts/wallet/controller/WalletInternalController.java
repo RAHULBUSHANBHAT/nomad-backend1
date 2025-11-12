@@ -1,6 +1,6 @@
 package com.cts.wallet.controller;
 import com.cts.wallet.dto.WalletDto; // <-- Import
-import com.cts.wallet.dto.TransactionDto; // <-- ADD
+import com.cts.wallet.dto.WalletTransactionDto; // <-- ADD
 import com.cts.wallet.dto.internal.RidePaymentRequestDto;
 import com.cts.wallet.service.WalletService;
 import jakarta.validation.Valid;
@@ -41,7 +41,7 @@ public class WalletInternalController {
     }
 
     @GetMapping("/transactions/latest")
-    public ResponseEntity<List<TransactionDto>> getLatestTransactions() {
+    public ResponseEntity<List<WalletTransactionDto>> getLatestTransactions() {
         log.info("Internal request: getLatestTransactions");
         return ResponseEntity.ok(walletService.getLatest5Transactions());
     }

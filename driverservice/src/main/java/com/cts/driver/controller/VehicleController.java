@@ -17,10 +17,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/drivers/me/vehicles") // Nested under the driver
+@RequestMapping("/api/v1") // Nested under the driver
 @PreAuthorize("hasRole('DRIVER')") // All methods require DRIVER role
-
 public class VehicleController {
+
+    private static final Logger log = LoggerFactory.getLogger(KafkaConsumerConfig.class);
 
     @Autowired
     private VehicleServiceImpl vehicleService;
@@ -29,10 +30,7 @@ public class VehicleController {
         return (String) authentication.getDetails();
     }
 
-        private static final Logger log = LoggerFactory.getLogger(KafkaConsumerConfig.class);
-
-
-    @PostMapping
+    @PostMapping("/drivers/me/vehicles")
     public ResponseEntity<VehicleDto> addVehicle(Authentication authentication, 
                                                  @Valid @RequestBody VehicleDto vehicleDto) {
         log.info("Driver {} adding vehicle", getUserId(authentication));
@@ -40,13 +38,13 @@ public class VehicleController {
         return new ResponseEntity<>(newVehicle, HttpStatus.CREATED);
     }
 
-    @GetMapping
+    @GetMapping("/drivers/me/vehicles")
     public ResponseEntity<List<VehicleDto>> getMyVehicles(Authentication authentication) {
         log.info("Driver {} fetching vehicles", getUserId(authentication));
         return ResponseEntity.ok(vehicleService.getVehiclesByUserId(getUserId(authentication)));
     }
     
-    @DeleteMapping("/{vehicleId}")
+    @DeleteMapping("/drivers/me/vehicles/{vehicleId}")
     @PreAuthorize("@securityService.isVehicleOwner(authentication, #vehicleId)") // Layer 3 data check
     public ResponseEntity<?> deleteVehicle(Authentication authentication, 
                                              @PathVariable String vehicleId) {
@@ -55,7 +53,7 @@ public class VehicleController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{vehicleId}")
+    @PutMapping("/drivers/me/vehicles/{vehicleId}")
     @PreAuthorize("@securityService.isVehicleOwner(authentication, #vehicleId)") // Layer 3
     public ResponseEntity<VehicleDto> updateVehicle(Authentication authentication, 
                                                     @PathVariable String vehicleId,
@@ -63,5 +61,12 @@ public class VehicleController {
         log.info("Driver {} updating vehicle {}", getUserId(authentication), vehicleId);
         VehicleDto updatedVehicle = vehicleService.updateVehicle(getUserId(authentication), vehicleId, vehicleDto);
         return ResponseEntity.ok(updatedVehicle);
+    }
+
+    @GetMapping("/admin/drivers/me/vehicles/{driverId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<VehicleDto>> getVehiclesByDriverId(@PathVariable String driverId) {
+        log.info("Driver {} fetching vehicles", driverId);
+        return ResponseEntity.ok(vehicleService.getVehiclesByUserId(driverId));
     }
 }

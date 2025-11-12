@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -25,17 +26,26 @@ public class WalletTransaction {
     @Column(name = "type", nullable = false)
     private TransactionType type;
 
+    @Column(name = "user_id")
+    private String userId;
+
     @Column(name = "related_booking_id")
-    private String relatedBookingId; // Link to the booking (if applicable)
+    private String relatedBookingId;
 
     @Column(name = "timestamp", nullable = false, updatable = false)
     private LocalDateTime timestamp;
 
-    public WalletTransaction(String walletId, double amount, TransactionType type, String relatedBookingId) {
+    public WalletTransaction(String walletId, double amount, TransactionType type, String userId, String relatedBookingId) {
         this.walletId = walletId;
         this.amount = amount;
         this.type = type;
-        this.relatedBookingId = relatedBookingId;
+        this.userId = userId;
+
+        if ((type == TransactionType.DEPOSIT || type == TransactionType.WITHDRAWAL) && relatedBookingId == null) {
+            this.relatedBookingId = UUID.randomUUID().toString();
+        } else {
+            this.relatedBookingId = relatedBookingId;
+        }
     }
 
     @PrePersist
