@@ -12,4 +12,5 @@ public class RideRequestEventDto {
     private String bookingId;
     private String city;
     private String vehicleType;
+    private double fare;
 }

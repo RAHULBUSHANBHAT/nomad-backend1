@@ -12,6 +12,7 @@ import com.cts.wallet.dto.WalletTransactionDto;
 import com.cts.wallet.dto.TransactionFilterDto;
 import com.cts.wallet.dto.WalletDto;
 import com.cts.wallet.dto.WithdrawRequestDto;
+import com.cts.wallet.dto.internal.RidePaymentRequestDto;
 import com.cts.wallet.model.RideTransaction;
 import com.cts.wallet.service.WalletService;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +78,13 @@ public class WalletController {
         log.info("Received withdrawal request of {} for user {}", withdrawRequest.getAmount(), userId);
         WalletDto updatedWallet = walletService.withdrawFunds(userId, withdrawRequest.getAmount());
         return ResponseEntity.ok(updatedWallet);
+    }
+
+    @PostMapping("/payment/execute-cash")
+    public ResponseEntity<Void> executeCashPayment(@Valid @RequestBody RidePaymentRequestDto paymentDto) {
+        log.info("Internal Request: Executing CASH payment for booking {}", paymentDto.getBookingId());
+        walletService.processCashPayment(paymentDto);
+        return ResponseEntity.ok().build();
     }
 
     // --- ADMIN ENDPOINTS (as requested) ---

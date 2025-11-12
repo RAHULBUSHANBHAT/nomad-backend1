@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
              configuration = FeignClientConfig.class)
 public interface WalletClient {
 
-    @PostMapping("/execute-payment")
+    @PostMapping("/payment/execute")
     ResponseEntity<Void> executeRidePayment(@RequestBody RidePaymentRequestDto request);
+    @PostMapping("/payment/execute-cash")
+    ResponseEntity<Void> executeCashPayment(@RequestBody RidePaymentRequestDto request);
 }

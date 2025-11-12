@@ -6,24 +6,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.cts.wallet.model.PaymentMode;
-import com.cts.wallet.model.RideTransaction;
-import com.cts.wallet.model.TransactionType; // <-- ADD
-
-import java.util.List;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-
-import com.cts.wallet.dto.WalletTransactionDto;
 import com.cts.wallet.dto.TransactionFilterDto;
 import com.cts.wallet.dto.WalletDto;
+import com.cts.wallet.dto.WalletTransactionDto;
 import com.cts.wallet.dto.internal.RidePaymentRequestDto;
 import com.cts.wallet.exception.InsufficientFundsException;
 import com.cts.wallet.exception.ResourceNotFoundException;
 import com.cts.wallet.mapper.WalletMapper;
+import com.cts.wallet.model.RideTransaction;
+import com.cts.wallet.model.TransactionType;
 import com.cts.wallet.model.Wallet;
 import com.cts.wallet.model.WalletTransaction;
 import com.cts.wallet.repository.RideTransactionRepository;
@@ -31,9 +27,11 @@ import com.cts.wallet.repository.TransactionSpecification;
 import com.cts.wallet.repository.WalletRepository;
 import com.cts.wallet.repository.WalletTransactionRepository;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
 
 @Service
-
 public class WalletService {
     private static final Logger log = LoggerFactory.getLogger(WalletService.class);
 
@@ -46,27 +44,14 @@ public class WalletService {
     @Value("${app.company-wallet-user-id}")
     private String companyWalletUserId;
 
-    /**
-     * Called by Kafka consumer to create a wallet for a new user.
-     */
-    @Transactional
-    public void createWallet(String userId) {
-        if (walletRepository.findByUserId(userId).isPresent()) {
-            log.warn("Wallet already exists for user ID: {}", userId);
-            return;
-        }
-        Wallet wallet = new Wallet(userId);
-        
-        // Create the company wallet on first-ever run
-        if (!walletRepository.findByUserId(companyWalletUserId).isPresent()) {
-            log.info("Company wallet not found. Creating special company wallet now.");
-            walletRepository.save(new Wallet(companyWalletUserId));
-        }
+    // --- 1. PUBLIC METHODS CALLED BY CONTROLLER ---
 
-        walletRepository.save(wallet);
-        log.info("Created new wallet for user ID: {}", userId);
+    @Transactional
+    public void executeRidePayment(RidePaymentRequestDto request) {
+        // This simply delegates to the core logic method
+        processRidePayment(request);
     }
-    
+
     @Transactional(readOnly = true)
     public WalletDto getWalletByUserId(String userId) {
         Wallet wallet = findWalletByUserId(userId);
@@ -95,125 +80,149 @@ public class WalletService {
         return rideTransactionRepository.findAll(spec, pageable);
     }
 
-    /**
-     * This is the core transactional logic for a ride payment.
-     * It is ATOMIC. It all succeeds, or it all fails.
-     */
+    // --- 2. CORE LOGIC (PAYMENTS) ---
+
     @Transactional
-    public void executeRidePayment(RidePaymentRequestDto request) {
-        log.info("Executing payment for booking ID: {}", request.getBookingId());
+    public void processRidePayment(RidePaymentRequestDto dto) {
+        Wallet riderWallet = getWallet(dto.getRiderUserId());
+        Wallet driverWallet = getWallet(dto.getDriverUserId());
+        Wallet companyWallet = getWallet(companyWalletUserId);
+
+        // Use DTO totalFare (which includes everything) or calculate
+        double total = dto.getTotalFare(); 
+        double commission = dto.getCommissionFee();
+        double driverShare = total - commission;
+
+        if (riderWallet.getBalance() < total) throw new InsufficientFundsException("Rider funds insufficient.");
+
+        // Transfers
+        riderWallet.setBalance(riderWallet.getBalance() - total);
+        driverWallet.setBalance(driverWallet.getBalance() + driverShare);
+        companyWallet.setBalance(companyWallet.getBalance() + commission);
         
-        // 1. Find all wallets
-        Wallet riderWallet = findWalletByUserId(request.getRiderUserId());
-        Wallet driverWallet = findWalletByUserId(request.getDriverUserId());
-        Wallet companyWallet = findWalletByUserId(companyWalletUserId); 
-
-        // 2. Check for sufficient funds
-        if (riderWallet.getBalance() < request.getTotalFare()) {
-            log.warn("Payment failed: Rider {} has insufficient funds.", request.getRiderUserId());
-            throw new InsufficientFundsException("Insufficient funds to pay for ride.");
-        }
-        
-        double driverPayout = request.getTotalFare() - request.getCommissionFee();
-
-        if(request.getPaymentMode().equals(PaymentMode.CASH)) {
-            driverWallet.setBalance(driverWallet.getBalance() - driverPayout);
-            walletTransactionRepository.save(new WalletTransaction(
-                driverWallet.getId(), -driverPayout, TransactionType.RIDE_CREDIT, request.getDriverUserId(), request.getBookingId()));
-        } else {
-            riderWallet.setBalance(riderWallet.getBalance() - request.getTotalFare());
-            walletTransactionRepository.save(new WalletTransaction(
-                riderWallet.getId(), -request.getTotalFare(), TransactionType.RIDE_DEBIT, request.getRiderUserId(), request.getBookingId()));
-
-            driverWallet.setBalance(driverWallet.getBalance() + driverPayout);
-            walletTransactionRepository.save(new WalletTransaction(
-                driverWallet.getId(), driverPayout, TransactionType.RIDE_CREDIT, request.getDriverUserId(), request.getBookingId()));
-        }
-
-        // 5. Credit Company
-        companyWallet.setBalance(companyWallet.getBalance() + request.getCommissionFee());
-        walletTransactionRepository.save(new WalletTransaction(
-            companyWallet.getId(), request.getCommissionFee(), TransactionType.COMMISSION_FEE, companyWalletUserId, request.getBookingId()));
-
-        rideTransactionRepository.save(new RideTransaction(
-            request.getBookingId(), request.getRiderUserId(), request.getRiderName(),
-            request.getRiderPhone(), request.getDriverUserId(), request.getDriverName(),
-            request.getDriverPhone(), request.getBaseFare(), request.getDistanceFare(), request.getTaxes(),
-            request.getCommissionFee(), request.getTotalFare(), request.getPickupAddress(),
-            request.getDropoffAddress(), request.getPaymentMode()));
-            
-        // 6. Save all wallet changes (JPA will batch these)
         walletRepository.save(riderWallet);
         walletRepository.save(driverWallet);
         walletRepository.save(companyWallet);
+
+        // Ledger
+        logTransaction(riderWallet.getId(), -total, TransactionType.RIDE_DEBIT, dto.getBookingId());
+        logTransaction(driverWallet.getId(), driverShare, TransactionType.RIDE_CREDIT, dto.getBookingId());
+        logTransaction(companyWallet.getId(), commission, TransactionType.COMMISSION_FEE, dto.getBookingId());
         
-        log.info("Payment successful for booking ID: {}", request.getBookingId());
+        // Receipt
+        createReceipt(dto, total, commission, "WALLET");
     }
+
+    @Transactional
+    public void processCashPayment(RidePaymentRequestDto dto) {
+        Wallet driverWallet = getWallet(dto.getDriverUserId());
+        Wallet companyWallet = getWallet(companyWalletUserId);
+        double commission = dto.getCommissionFee();
+
+        if (driverWallet.getBalance() < commission) {
+            throw new InsufficientFundsException("Driver balance too low for commission.");
+        }
+
+        // Deduct Commission Only
+        driverWallet.setBalance(driverWallet.getBalance() - commission);
+        companyWallet.setBalance(companyWallet.getBalance() + commission);
+        
+        walletRepository.save(driverWallet);
+        walletRepository.save(companyWallet);
+
+        logTransaction(driverWallet.getId(), -commission, TransactionType.COMMISSION_FEE, dto.getBookingId());
+        logTransaction(companyWallet.getId(), commission, TransactionType.COMMISSION_FEE, dto.getBookingId());
+        
+        createReceipt(dto, dto.getTotalFare(), commission, "CASH");
+    }
+
     @Transactional
     public WalletDto depositFunds(String userId, double amount) {
-        log.info("Attempting to deposit {} for user ID: {}", amount, userId);
-        
-        Wallet wallet = findWalletByUserId(userId);
-
+        Wallet wallet = getWallet(userId);
         wallet.setBalance(wallet.getBalance() + amount);
-        Wallet savedWallet = walletRepository.save(wallet);
-
-        // --- THIS WAS THE MISSING LINE ---
-        walletTransactionRepository.save(new WalletTransaction(
-            wallet.getId(), 
-            amount, // Positive amount
-            TransactionType.DEPOSIT,
-            userId,
-            null // No booking ID for a deposit
-        ));
-        log.info("Deposit successful. New balance for user {}: {}", userId, savedWallet.getBalance());
-        return walletMapper.toWalletDto(savedWallet);
+        Wallet saved = walletRepository.save(wallet);
+        
+        logTransaction(saved.getId(), amount, TransactionType.DEPOSIT, null); // Null ref ID for deposits
+        return walletMapper.toWalletDto(saved);
     }
 
     @Transactional
     public WalletDto withdrawFunds(String userId, double amount) {
-        log.info("Attempting to withdraw {} for user ID: {}", amount, userId);
+        Wallet wallet = getWallet(userId);
+        if (wallet.getBalance() < amount) throw new InsufficientFundsException("Insufficient funds.");
         
-        Wallet wallet = findWalletByUserId(userId);
-
-        // --- Core Logic ---
-        if (wallet.getBalance() < amount) {
-            log.warn("Withdrawal failed: User {} has insufficient funds. Balance: {}, Requested: {}", 
-                     userId, wallet.getBalance(), amount);
-            throw new InsufficientFundsException("Insufficient funds for withdrawal.");
-        }
-        // --------------------
-
         wallet.setBalance(wallet.getBalance() - amount);
-        Wallet savedWallet = walletRepository.save(wallet);
-
-        // --- Create Transaction Record ---
-        walletTransactionRepository.save(new WalletTransaction(
-            wallet.getId(), 
-            -amount, // Store as a negative amount
-            TransactionType.WITHDRAWAL, 
-            userId,
-            null // No booking ID for a withdrawal
-        ));
+        Wallet saved = walletRepository.save(wallet);
         
-        log.info("Withdrawal successful. New balance for user {}: {}", userId, savedWallet.getBalance());
-        return walletMapper.toWalletDto(savedWallet);
+        logTransaction(saved.getId(), -amount, TransactionType.WITHDRAWAL, null);
+        return walletMapper.toWalletDto(saved);
     }
 
     @Transactional(readOnly = true)
     public List<WalletTransactionDto> getLatest5Transactions() {
-        log.info("Fetching latest 5 transactions across all wallets.");
-        List<WalletTransaction> transactions = walletTransactionRepository.findAll(
-                Sort.by(Sort.Direction.DESC, "timestamp")).stream()
-                .limit(5)
-                .toList();
-        return transactions.stream()
-                .map(walletMapper::toWalletTransactionDto)
-                .toList();
+        return walletTransactionRepository.findAll(Sort.by(Sort.Direction.DESC, "timestamp"))
+                .stream().limit(5).map(walletMapper::toWalletTransactionDto).toList();
     }
-    // Helper method
+
+    @Transactional
+    public void createWallet(String userId) {
+        if (walletRepository.findByUserId(userId).isEmpty()) {
+            walletRepository.save(new Wallet(userId));
+        }
+        if (walletRepository.findByUserId(companyWalletUserId).isEmpty()) {
+            walletRepository.save(new Wallet(companyWalletUserId));
+        }
+    }
+
+    // --- 3. HELPERS ---
+
+    // Helper: Find wallet or throw (for read-only ops)
     private Wallet findWalletByUserId(String userId) {
         return walletRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for user ID: " + userId));
+    }
+
+    // Helper: Get existing or create new (for transactional ops)
+    private Wallet getWallet(String userId) {
+        return getOrCreateWallet(userId);
+    }
+
+    
+
+    // Helper: The actual implementation
+    private Wallet getOrCreateWallet(String userId) {
+        return walletRepository.findByUserId(userId)
+                .orElseGet(() -> walletRepository.save(new Wallet(userId)));
+    }
+
+    private void logTransaction(String wId, double amt, TransactionType type, String refId) {
+        WalletTransaction txn = new WalletTransaction(wId, amt, type, refId); 
+        walletTransactionRepository.save(txn);
+    }
+
+
+    private void createReceipt(RidePaymentRequestDto dto, double total, double comm, String mode) 
+    {
+        RideTransaction rt = new RideTransaction();
+        rt.setBookingId(dto.getBookingId());
+        rt.setRiderId(dto.getRiderUserId());
+        rt.setRiderName(dto.getRiderName()); // Fill details from DTO
+        rt.setRiderPhone(dto.getRiderPhone());
+        
+        rt.setDriverId(dto.getDriverUserId());
+        rt.setDriverName(dto.getDriverName());
+        rt.setDriverPhone(dto.getDriverPhone());
+        
+        rt.setPickupAddress(dto.getPickupAddress());
+        rt.setDropoffAddress(dto.getDropoffAddress());
+
+        // FIX: Using BigDecimal.valueOf
+        rt.setTotalFare((total));
+        rt.setCommissionFee((comm));
+        rt.setBaseFare((dto.getBaseFare()));
+        rt.setDistanceFare((dto.getDistanceFare()));
+        rt.setTaxes((dto.getTaxes()));
+
+        rideTransactionRepository.save(rt);
     }
 }

@@ -50,6 +50,12 @@ public class BookingController {
         BookingDto newBooking = bookingService.requestRide(getUserId(authentication), dto);
         return new ResponseEntity<>(newBooking, HttpStatus.CREATED);
     }
+    
+    @PostMapping("/driver/bookings/{id}/confirm-cash")
+    @PreAuthorize("hasRole('DRIVER') and @securityService.isDriverOnBooking(authentication, #id)")
+    public ResponseEntity<BookingDto> confirmCashPayment(Authentication authentication, @PathVariable("id") String id) {
+        return ResponseEntity.ok(bookingService.confirmCashPayment(id, getUserId(authentication)));
+    }
 
     @GetMapping("/bookings/me/history")
     @PreAuthorize("hasRole('RIDER')")

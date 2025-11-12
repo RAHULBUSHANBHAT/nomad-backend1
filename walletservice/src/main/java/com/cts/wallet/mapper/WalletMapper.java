@@ -1,8 +1,7 @@
 package com.cts.wallet.mapper;
 
-import com.cts.wallet.dto.WalletTransactionDto;
 import com.cts.wallet.dto.WalletDto;
-import com.cts.wallet.model.RideTransaction;
+import com.cts.wallet.dto.WalletTransactionDto;
 import com.cts.wallet.model.Wallet;
 import com.cts.wallet.model.WalletTransaction;
 import org.springframework.stereotype.Component;
@@ -25,7 +24,8 @@ public class WalletMapper {
                 .id(tx.getId())
                 .amount(tx.getAmount())
                 .type(tx.getType())
-                .userId(tx.getUserId())
+                .walletId(tx.getWalletId())       // <-- Corrected: Accessing walletId
+                .referenceId(tx.getReferenceId()) // <-- Added: Shows Booking ID in UI
                 .timestamp(tx.getTimestamp())
                 .build();
     }

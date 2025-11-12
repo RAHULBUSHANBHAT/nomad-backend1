@@ -1,5 +1,6 @@
 package com.cts.driver.controller;
 
+import com.cts.driver.dto.AcceptOfferRequestDto;
 import com.cts.driver.dto.DriverProfileDto;
 import com.cts.driver.dto.RideOfferDto;
 import com.cts.driver.dto.UpdateDriverStatusDto;
@@ -62,10 +63,14 @@ public class DriverController {
     
     @PostMapping("/me/offers/{offerId}/accept")
     @PreAuthorize("hasRole('DRIVER')")
-    public ResponseEntity<Void> acceptOffer(Authentication authentication, @PathVariable String offerId) {
-        driverService.acceptOffer(getUserId(authentication), offerId);
-        return ResponseEntity.ok().build();
-    }
+    public ResponseEntity<Void> acceptOffer(Authentication authentication, 
+                                        @PathVariable String offerId,
+                                        @RequestBody AcceptOfferRequestDto dto) { // Expecting JSON body
+    
+    // Calling the 3-argument method
+    driverService.acceptOffer(getUserId(authentication), offerId, dto.getVehicleId());
+    return ResponseEntity.ok().build();
+}
     
     // --- ADMIN ENDPOINTS (for the admin panel) ---
 

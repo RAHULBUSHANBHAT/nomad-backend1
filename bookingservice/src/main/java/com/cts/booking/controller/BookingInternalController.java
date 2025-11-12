@@ -28,8 +28,12 @@ public class BookingInternalController {
             @PathVariable String bookingId,
             @RequestBody BookingAssignmentDto dto) {
         
-        log.info("Internal request: Assigning driver {} to booking {}", dto.getDriverUserId(), bookingId);
-        bookingService.assignDriverToBooking(bookingId, dto.getDriverUserId());
+        log.info("Internal request: Assigning driver {} with vehicle {} to booking {}", 
+                 dto.getDriverUserId(), dto.getVehicleId(), bookingId);
+        
+        // FIX: Passing 3 arguments now
+        bookingService.assignDriverToBooking(bookingId, dto.getDriverUserId(), dto.getVehicleId());
+        
         return ResponseEntity.ok().build();
     }
 }

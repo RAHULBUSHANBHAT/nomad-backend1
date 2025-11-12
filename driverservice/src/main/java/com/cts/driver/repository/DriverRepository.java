@@ -17,6 +17,10 @@ public interface DriverRepository extends JpaRepository<Driver, String> {
     
     Optional<Driver> findByUserId(String userId);
 
+    // --- THIS WAS MISSING ---
+    List<Driver> findByCurrentCityAndAvailableTrue(String currentCity);
+
+    // Custom query if you want to filter by specific vehicle type in DB (Optional usage)
     @Query("SELECT d FROM Driver d JOIN d.vehicles v WHERE d.available = true AND d.currentCity = :city AND v.vehicleType = :vehicleType AND v.isVerified = true")
     List<Driver> findAvailableDrivers(String city, VehicleType vehicleType);
     

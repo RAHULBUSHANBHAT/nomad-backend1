@@ -1,9 +1,12 @@
 package com.cts.booking.client;
 
 import com.cts.booking.config.FeignClientConfig;
-import com.cts.booking.dto.AddRatingRequestDto; 
+import com.cts.booking.dto.AddRatingRequestDto;
+import com.cts.booking.dto.client.UserDto;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,4 +24,7 @@ public interface UserClient {
     ResponseEntity<Void> addRating(
             @PathVariable("id") String id, 
             @RequestBody AddRatingRequestDto dto);
+
+            @GetMapping("/{id}")
+    UserDto getUserById(@PathVariable("id") String id);
 }
