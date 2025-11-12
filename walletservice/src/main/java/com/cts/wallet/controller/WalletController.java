@@ -89,7 +89,7 @@ public class WalletController {
 
     // --- ADMIN ENDPOINTS (as requested) ---
 
-    @GetMapping("/admin/wallets/transactions")
+    @GetMapping("/admin/wallets/wallet-transactions")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<WalletTransactionDto>> getAllWalletTransactions(
             @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable,
@@ -98,7 +98,7 @@ public class WalletController {
         return ResponseEntity.ok(walletService.getAllWalletTransactions(filters, pageable));
     }
 
-    @GetMapping("/admin/wallets/transactions")
+    @GetMapping("/admin/wallets/ride-transactions")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<RideTransaction>> getAllRideTransactions(
             @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable,
