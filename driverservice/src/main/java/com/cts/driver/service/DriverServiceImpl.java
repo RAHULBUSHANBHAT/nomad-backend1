@@ -1,7 +1,7 @@
 package com.cts.driver.service;
-
 import java.util.Collections;
 import java.util.List;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ import com.cts.driver.dto.UpdateDriverStatusDto;
 import com.cts.driver.dto.UpdateVerificationDto;
 import com.cts.driver.dto.client.BookingAssignmentDto;
 import com.cts.driver.dto.client.UserDto;
-import com.cts.driver.exception.OfferException;
+import com.cts.driver.exception.OfferException; // Required for single result page
 import com.cts.driver.exception.ResourceNotFoundException;
 import com.cts.driver.mapper.DriverMapper;
 import com.cts.driver.mapper.RideOfferMapper;
@@ -27,6 +27,7 @@ import com.cts.driver.model.Driver;
 import com.cts.driver.model.RideOffer;
 import com.cts.driver.model.RideOfferStatus;
 import com.cts.driver.model.Vehicle;
+import com.cts.driver.model.VehicleType;
 import com.cts.driver.model.VerificationType;
 import com.cts.driver.repository.DriverRepository;
 import com.cts.driver.repository.RideOfferRepository;

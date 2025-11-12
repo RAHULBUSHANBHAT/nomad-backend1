@@ -14,11 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -65,6 +66,10 @@ public class BookingService {
         return bookingMapper.toDto(savedBooking);
     }
 
+    public ResponseEntity<?> getVehicleAvailability(String city) {
+        return driverClient.getAvailableVehiclesInCity(city);
+    }
+
     // --- 2. ASSIGN DRIVER (Called by Driver Service) ---
     @Transactional
     public void assignDriverToBooking(String bookingId, String driverUserId, String vehicleId) {
@@ -84,7 +89,7 @@ public class BookingService {
     }
 
     // --- 3. COMPLETE RIDE ---
-    @Transactional
+     @Transactional
     public BookingDto completeRide(String driverUserId, String bookingId) {
         Booking booking = findBooking(bookingId);
         if (!booking.getDriverUserId().equals(driverUserId)) throw new BookingException("Not your ride.");
