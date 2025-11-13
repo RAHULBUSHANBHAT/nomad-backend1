@@ -41,7 +41,10 @@ public class MatchingService {
                     request.getBookingId(),
                     driver.getId(),
                     request.getVehicleType(),
-                    request.getFare()
+                    request.getFare(),
+                    request.getPickupLocationName(),
+                    request.getDropoffLocationName(),
+                    request.getEstimatedDistanceKm()
                 );
                 rideOfferRepository.save(offer);
                 offerCount++;

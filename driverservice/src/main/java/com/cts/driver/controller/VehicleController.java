@@ -41,7 +41,7 @@ public class VehicleController {
     @GetMapping("/drivers/me/vehicles")
     public ResponseEntity<List<VehicleDto>> getMyVehicles(Authentication authentication) {
         log.info("Driver {} fetching vehicles", getUserId(authentication));
-        return ResponseEntity.ok(vehicleService.getVehiclesByUserId(getUserId(authentication)));
+        return ResponseEntity.ok(vehicleService.getVehiclesByDriverUserId(getUserId(authentication)));
     }
     
     @DeleteMapping("/drivers/me/vehicles/{vehicleId}")

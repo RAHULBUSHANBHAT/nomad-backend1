@@ -34,7 +34,4 @@ public class FareConfig {
 
     @Column(name = "price_per_km", nullable = false)
     private double ratePerKm; // e.g., 12.0
-    
-    @Column(nullable = false)
-    private double ratePerMinute; // e.g., 1.0
 }

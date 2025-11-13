@@ -3,6 +3,8 @@ package com.cts.booking.controller;
 import com.cts.booking.dto.BookingDto;
 import com.cts.booking.dto.BookingFiltersDto;
 import com.cts.booking.dto.CreateBookingRequestDto;
+import com.cts.booking.dto.EstimateFareRequestDto;
+import com.cts.booking.dto.EstimatedFareResponseDto;
 import com.cts.booking.dto.AddRatingRequestDto; // <-- ADD
 import com.cts.booking.service.BookingService;
 import jakarta.validation.Valid;
@@ -51,6 +53,14 @@ public class BookingController {
         return new ResponseEntity<>(newBooking, HttpStatus.CREATED);
     }
 
+    @PostMapping("/bookings/estimate-fare")
+    @PreAuthorize("hasRole('RIDER')")
+    public ResponseEntity<EstimatedFareResponseDto> estimateFare(Authentication authentication, 
+                                                  @Valid @RequestBody EstimateFareRequestDto dto) {
+        log.info("Rider {} is requesting estimated fare for a ride", getUserId(authentication));
+        return new ResponseEntity<>(bookingService.estimateFare(getUserId(authentication), dto), HttpStatus.CREATED);
+    }
+
     @GetMapping("/bookings/active-ride/rider")
     @PreAuthorize("hasRole('RIDER')")
     public ResponseEntity<BookingDto> getActiveBookingForRider(Authentication authentication) {
@@ -94,15 +104,15 @@ public class BookingController {
      * --- NEW "FEEDBACK" ENDPOINT ---
      * Can only be left by the RIDER after a ride.
      */
-    @PostMapping("/bookings/{id}/feedback")
-    @PreAuthorize("hasRole('RIDER') and @securityService.isRiderOnBooking(authentication, #id)")
+    @PostMapping("/bookings/{bookingId}/feedback")
+    @PreAuthorize("hasRole('RIDER') and @securityService.isRiderOnBooking(authentication, #bookingId)")
     public ResponseEntity<Void> addFeedback(Authentication authentication,
-                                            @PathVariable("id") String bookingId,
-                                            @Valid @RequestBody AddRatingRequestDto dto) {
+                                            @PathVariable("bookingId") String bookingId,
+                                            @Valid @RequestBody(required = false) AddRatingRequestDto dto) {
         String riderUserId = getUserId(authentication);
         log.info("Rider {} is leaving feedback for booking {}", riderUserId, bookingId);
         
-        bookingService.addFeedback(bookingId, riderUserId, dto.getRating());
+        bookingService.addFeedback(bookingId, riderUserId, dto);
         return ResponseEntity.ok().build();
     }
 
@@ -120,7 +130,7 @@ public class BookingController {
 
     // Note: The "accept" endpoint is on the DRIVER-SERVICE, not here.
     
-    @PostMapping("/driver/bookings/{id}/complete")
+    @PostMapping("/bookings/{id}/complete")
     @PreAuthorize("hasRole('DRIVER') and @securityService.isDriverOnBooking(authentication, #bookingId)")
     public ResponseEntity<BookingDto> completeRide(Authentication authentication, 
                                                    @PathVariable("id") String bookingId) {
@@ -147,6 +157,18 @@ public class BookingController {
     public ResponseEntity<BookingDto> getBookingDetails(Authentication authentication, 
                                                         @PathVariable("id") String id) {
         return ResponseEntity.ok(bookingService.getBookingById(id));
+    }
+
+    @PostMapping("/bookings/{id}/start")
+    @PreAuthorize("@securityService.isDriverOnBooking(authentication, #id)")
+    public ResponseEntity<BookingDto> startBooking(Authentication authentication, 
+                                                    @PathVariable("id") String id) {
+        
+        String userId = getUserId(authentication);
+        log.info("User {} ({}) is cancelling booking {}", userId, id);
+        
+        BookingDto cancelledBooking = bookingService.startRide(id, userId);
+        return ResponseEntity.ok(cancelledBooking);
     }
 
     /**

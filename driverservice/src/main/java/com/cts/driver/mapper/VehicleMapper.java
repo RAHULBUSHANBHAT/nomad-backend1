@@ -22,6 +22,7 @@ public class VehicleMapper {
         dto.setInsurancePolicyNumber(entity.getInsurancePolicyNumber());
         dto.setInsuranceVerified(entity.isInsuranceVerified());
         dto.setInsuranceExpiry(entity.getInsuranceExpiry());
+        dto.setRcVerified(entity.isRcVerified());
         return dto;
     }
 

@@ -41,6 +41,19 @@ public class BookingAdminController {
         log.info("Admin request: setFare for city {}", dto.getCity());
         return ResponseEntity.ok(bookingService.setFare(dto));
     }
+
+    @PutMapping("/fares/{id}")
+    public ResponseEntity<FareConfig> updateFare(@PathVariable String id, @Valid @RequestBody FareConfigDto dto) {
+        log.info("Admin request: deleting fare with id {}", id);
+        return ResponseEntity.ok(bookingService.updateFare(id, dto));
+    }
+
+    @DeleteMapping("/fares/{id}")
+    public ResponseEntity<FareConfig> deleteFare(@PathVariable String id) {
+        log.info("Admin request: deleting fare with id {}", id);
+        bookingService.deleteFare(id);
+        return ResponseEntity.ok().build();
+    }
     
     // We would add PUT /fares/{id} and DELETE /fares/{id} here
 

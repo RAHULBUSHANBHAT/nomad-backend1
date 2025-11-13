@@ -18,7 +18,6 @@ public class RideOffer {
     @Column(nullable = false)
     private String bookingId;
 
-    // --- THIS WAS MISSING IN YOUR CODE ---
     @Column(nullable = false)
     private String driverId; 
 
@@ -27,10 +26,19 @@ public class RideOffer {
     private RideOfferStatus status;
     
     @Column(nullable = false)
-    private String vehicleCategory; // e.g., "SEDAN" (String to match Enum name)
+    private String vehicleCategory;
 
     @Column(nullable = false)
     private double fare;
+
+    @Column(nullable = false)
+    private String pickupLocationName;
+
+    @Column(nullable = false)
+    private String dropoffLocationName;
+
+    @Column(nullable = false)
+    private double distanceInKm;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -45,10 +53,15 @@ public class RideOffer {
         status = RideOfferStatus.PENDING;
     }
 
-    public RideOffer(String bookingId, String driverId, String vehicleCategory, double fare) {
+    public RideOffer(String bookingId, String driverId, String vehicleCategory, double fare,
+                    String pickupLocationName, String dropoffLocationName, double distanceInKm) {
+                        
         this.bookingId = bookingId;
         this.driverId = driverId;
         this.vehicleCategory = vehicleCategory;
         this.fare = fare;
+        this.pickupLocationName = pickupLocationName;
+        this.dropoffLocationName = dropoffLocationName;
+        this.distanceInKm = distanceInKm;
     }
 }

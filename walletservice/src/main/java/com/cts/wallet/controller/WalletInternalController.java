@@ -29,6 +29,13 @@ public class WalletInternalController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/payment/execute-cash")
+    public ResponseEntity<Void> executeCashPayment(@Valid @RequestBody RidePaymentRequestDto paymentDto) {
+        log.info("Internal Request: Executing CASH payment for booking {}", paymentDto.getBookingId());
+        walletService.processCashPayment(paymentDto);
+        return ResponseEntity.ok().build();
+    }
+
     /**
      * --- THIS IS THE NEW, MISSING METHOD ---
      * An internal endpoint for other services (like rider-service)

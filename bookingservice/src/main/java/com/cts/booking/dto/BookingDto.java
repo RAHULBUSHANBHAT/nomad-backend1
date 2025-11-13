@@ -17,7 +17,9 @@ public class BookingDto {
     private String driverUserId;
     private String driverName;
     private String driverPhoneNumber;
-    private Double driverRating;
+    private float driverRating;
+    private long totalTrips;
+    private LocalDateTime driverCreatedAt;
     
     // --- VEHICLE DETAILS ---
     private String vehicleId;   // Specific vehicle used

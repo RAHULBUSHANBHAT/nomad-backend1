@@ -3,7 +3,6 @@ package com.cts.driver.controller;
 import com.cts.driver.dto.AcceptOfferRequestDto;
 import com.cts.driver.dto.DriverProfileDto;
 import com.cts.driver.dto.RideOfferDto;
-import com.cts.driver.dto.UpdateDriverStatusDto;
 import com.cts.driver.dto.UpdateVerificationDto;
 import com.cts.driver.model.Driver;
 import com.cts.driver.model.VerificationType;
@@ -79,19 +78,19 @@ public class DriverController {
 
     @GetMapping("/admin/verification-queue")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<Driver>> getVerificationQueue(
+    public ResponseEntity<Page<DriverProfileDto>> getVerificationQueue(
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
         return ResponseEntity.ok(driverService.getVerificationQueue(pageable));
     }
     
-   @PostMapping("/admin/approve/{driverId}/{type}")
+    @PostMapping("/admin/approve/{driverId}/{type}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DriverProfileDto> approveDocument(
             @PathVariable String driverId, 
-            @PathVariable VerificationType type) {
+            @PathVariable String type) {
         
         log.info("Admin request: Approving {} for driver {}", type, driverId);
-        DriverProfileDto updatedDriver = driverService.approveVerification(driverId, type);
+        DriverProfileDto updatedDriver = driverService.approveVerification(driverId, VerificationType.valueOf(type));
         return ResponseEntity.ok(updatedDriver);
     }
     

@@ -18,6 +18,7 @@ import com.cts.wallet.dto.internal.RidePaymentRequestDto;
 import com.cts.wallet.exception.InsufficientFundsException;
 import com.cts.wallet.exception.ResourceNotFoundException;
 import com.cts.wallet.mapper.WalletMapper;
+import com.cts.wallet.model.PaymentMode;
 import com.cts.wallet.model.RideTransaction;
 import com.cts.wallet.model.TransactionType;
 import com.cts.wallet.model.Wallet;
@@ -72,6 +73,7 @@ public class WalletService {
 
     @Transactional(readOnly = true)
     public Page<RideTransaction> getAllRideTransactions(TransactionFilterDto filters, Pageable pageable) {
+        if(filters == null) return rideTransactionRepository.findAll(pageable);
         Specification<RideTransaction> spec = Specification
             .where(specBuilder.hasBookingId(filters.getSearchTerm()))
             .and(specBuilder.hasType(filters.getType()))
@@ -118,10 +120,6 @@ public class WalletService {
         Wallet driverWallet = getWallet(dto.getDriverUserId());
         Wallet companyWallet = getWallet(companyWalletUserId);
         double commission = dto.getCommissionFee();
-
-        if (driverWallet.getBalance() < commission) {
-            throw new InsufficientFundsException("Driver balance too low for commission.");
-        }
 
         // Deduct Commission Only
         driverWallet.setBalance(driverWallet.getBalance() - commission);
@@ -208,6 +206,8 @@ public class WalletService {
         rt.setRiderId(dto.getRiderUserId());
         rt.setRiderName(dto.getRiderName()); // Fill details from DTO
         rt.setRiderPhone(dto.getRiderPhone());
+
+        rt.setPaymentMode(mode == "WALLET" ? PaymentMode.WALLET : PaymentMode.CASH);
         
         rt.setDriverId(dto.getDriverUserId());
         rt.setDriverName(dto.getDriverName());

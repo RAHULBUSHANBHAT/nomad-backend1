@@ -1,9 +1,5 @@
 package com.cts.driver.dto;
 
-import com.cts.driver.dto.client.UserDto;
-import com.cts.driver.model.Driver;
-
-import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDate;

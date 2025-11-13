@@ -30,4 +30,6 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 
     Optional<Booking> findByRiderUserIdAndStatusIn(String riderUserId, List<BookingStatus> activeStatuses);
     Optional<Booking> findByDriverUserIdAndStatusIn(String driverUserId, List<BookingStatus> activeStatuses);
+
+    long countByDriverUserIdAndStatusIn(String driverUserId, List<BookingStatus> statuses);
 }

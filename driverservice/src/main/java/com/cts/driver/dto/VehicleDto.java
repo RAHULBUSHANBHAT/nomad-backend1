@@ -16,6 +16,8 @@ public class VehicleDto {
     private String registrationNumber;
     @NotBlank(message = "Model is required")
     private String model;
+    @NotBlank(message = "Manufacturer is required")
+    private String manufacturer;
     
     private LocalDate pucExpiry;
     private String insurancePolicyNumber;
@@ -23,4 +25,5 @@ public class VehicleDto {
     private String pucNumber;
     private boolean isPucVerified;
     private boolean isInsuranceVerified;
+    private boolean isRcVerified;
 }

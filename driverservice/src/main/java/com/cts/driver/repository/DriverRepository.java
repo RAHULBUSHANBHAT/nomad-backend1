@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.cts.driver.model.Driver;
-import com.cts.driver.model.Vehicle;
 import com.cts.driver.model.VehicleType;
 
 @Repository
@@ -26,7 +25,10 @@ public interface DriverRepository extends JpaRepository<Driver, String> {
     List<Driver> findAvailableDrivers(String city, VehicleType vehicleType);
     
     // For admin "verification queue"
-    Page<Driver> findByIsDriverLicenseVerifiedFalse(Pageable pageable);
+    @Query("SELECT DISTINCT d FROM Driver d LEFT JOIN d.vehicles v " +
+           "WHERE d.isAadhaarVerified = false OR d.isDriverLicenseVerified = false " +
+           "OR v.isRcVerified = false OR v.isPucVerified = false OR v.isInsuranceVerified = false")
+    Page<Driver> findDriversForVerification(Pageable pageable);
     Optional<Driver> findByAadharNumber(String aadharNumber);
     Optional<Driver> findByLicenseNumber(String licenseNumber);
 }

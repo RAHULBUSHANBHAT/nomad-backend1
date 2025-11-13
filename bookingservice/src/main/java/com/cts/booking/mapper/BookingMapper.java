@@ -18,7 +18,14 @@ public class BookingMapper {
         dto.setId(booking.getId());
         dto.setStatus(booking.getStatus());
         dto.setRiderUserId(booking.getRiderUserId());
+        dto.setRiderName(booking.getRiderName());
+        dto.setRiderPhoneNumber(booking.getRiderPhoneNumber());
         dto.setDriverUserId(booking.getDriverUserId());
+        dto.setDriverName(booking.getDriverName());
+        dto.setDriverPhoneNumber(booking.getDriverPhoneNumber());
+        dto.setDriverRating(booking.getDriverProfileRating());
+        dto.setTotalTrips(booking.getTotalTrips());
+        dto.setDriverCreatedAt(booking.getDriverCreatedAt());
         dto.setVehicleId(booking.getVehicleId()); // Important
         dto.setFare(booking.getFare());
         dto.setPaymentStatus(booking.getPaymentStatus());
@@ -50,7 +57,7 @@ public class BookingMapper {
                 UserDto driver = userClient.getUserById(booking.getDriverUserId());
                 dto.setDriverName(driver.getFirstName() + " " + driver.getLastName());
                 dto.setDriverPhoneNumber(driver.getPhoneNumber());
-                dto.setDriverRating((double)driver.getRating());
+                dto.setDriverRating(driver.getRating());
             } catch (Exception e) { dto.setDriverName("Unknown"); }
         }
         return dto;

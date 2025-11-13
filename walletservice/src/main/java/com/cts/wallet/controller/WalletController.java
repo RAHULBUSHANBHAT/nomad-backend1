@@ -80,20 +80,13 @@ public class WalletController {
         return ResponseEntity.ok(updatedWallet);
     }
 
-    @PostMapping("/payment/execute-cash")
-    public ResponseEntity<Void> executeCashPayment(@Valid @RequestBody RidePaymentRequestDto paymentDto) {
-        log.info("Internal Request: Executing CASH payment for booking {}", paymentDto.getBookingId());
-        walletService.processCashPayment(paymentDto);
-        return ResponseEntity.ok().build();
-    }
-
     // --- ADMIN ENDPOINTS (as requested) ---
 
     @GetMapping("/admin/wallets/wallet-transactions")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<WalletTransactionDto>> getAllWalletTransactions(
             @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable,
-            @Valid @RequestParam TransactionFilterDto filters) {
+            @Valid @RequestParam(required = false) TransactionFilterDto filters) {
         log.info("Admin request: Fetching all transactions");
         return ResponseEntity.ok(walletService.getAllWalletTransactions(filters, pageable));
     }
@@ -102,7 +95,7 @@ public class WalletController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<RideTransaction>> getAllRideTransactions(
             @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable,
-            @Valid @RequestParam TransactionFilterDto filters) {
+            @Valid @RequestParam(required = false) TransactionFilterDto filters) {
         log.info("Admin request: Fetching all transactions");
         return ResponseEntity.ok(walletService.getAllRideTransactions(filters, pageable));
     }

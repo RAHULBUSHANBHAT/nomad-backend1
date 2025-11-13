@@ -43,10 +43,8 @@ private static final Logger log = LoggerFactory.getLogger(KafkaConsumerConfig.cl
     public ResponseEntity<Boolean> setAvailability(@PathVariable String userId, @RequestParam boolean available) {
         log.info("Internal request: Setting availability for user {} to {}", userId, available);
         
-        Driver driver = driverService.findDriverByUserId(userId);
         UpdateDriverStatusDto dto = new UpdateDriverStatusDto();
         dto.setAvailable(available);
-        dto.setCurrentCity(driver.getCurrentCity()); // Keep last known city
         
         return ResponseEntity.ok(driverService.updateDriverStatus(userId, dto));
     }

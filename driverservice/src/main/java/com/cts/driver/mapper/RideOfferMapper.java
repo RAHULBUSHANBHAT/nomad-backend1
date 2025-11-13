@@ -9,9 +9,14 @@ public class RideOfferMapper {
     
     public RideOfferDto toDto(RideOffer offer) {
         return RideOfferDto.builder()
-                .id(offer.getId())
+                .offerId(offer.getId())
                 .bookingId(offer.getBookingId())
-                .status(offer.getStatus())
+                .fare(offer.getFare())
+                .vehicleCategory(offer.getVehicleCategory())
+                .expiresAt(offer.getExpiresAt())
+                .pickupLocationName(offer.getPickupLocationName())
+                .dropoffLocationName(offer.getDropoffLocationName())
+                .estimatedDistanceKm(offer.getDistanceInKm())
                 .createdAt(offer.getCreatedAt())
                 .build();
     }

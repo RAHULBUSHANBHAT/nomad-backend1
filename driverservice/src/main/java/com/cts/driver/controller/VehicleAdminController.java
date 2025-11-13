@@ -24,6 +24,6 @@ public class VehicleAdminController {
     @GetMapping("/{driverId}/vehicles")
     public ResponseEntity<List<VehicleDto>> getVehiclesByDriverId(@PathVariable String driverId) {
         log.info("Admin fetching vehicles for driver {}", driverId);
-        return ResponseEntity.ok(vehicleService.getVehiclesByUserId(driverId));
+        return ResponseEntity.ok(vehicleService.getVehiclesByDriverUserId(driverId));
     }
 }

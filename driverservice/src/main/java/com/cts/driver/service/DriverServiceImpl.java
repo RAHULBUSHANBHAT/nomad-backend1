@@ -79,9 +79,9 @@ public class DriverServiceImpl {
 
     @Transactional
     public boolean updateDriverStatus(String userId, UpdateDriverStatusDto dto) {
-        log.info("Updating current city for driver ID: {} to {}", userId, dto.getCurrentCity());
+        log.info("Updating current city for driver ID: {}", userId);
         Driver driver = findDriverByUserId(userId);
-        driver.setCurrentCity(dto.getCurrentCity());
+        driver.setAvailable(dto.isAvailable());
         driverRepository.save(driver);
         return driver.isAvailable();
     }
@@ -189,8 +189,10 @@ public class DriverServiceImpl {
         });
     }
 
-    public Page<Driver> getVerificationQueue(Pageable pageable) {
-        return driverRepository.findByIsDriverLicenseVerifiedFalse(pageable);
+    public Page<DriverProfileDto> getVerificationQueue(Pageable pageable) {
+        return driverRepository.findDriversForVerification(pageable).map(driver -> {
+            return driverMapper.toDriverProfileDto(driver);
+        });
     }
     
     @Transactional
