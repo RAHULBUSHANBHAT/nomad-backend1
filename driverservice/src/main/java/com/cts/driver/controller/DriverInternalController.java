@@ -15,8 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 // import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,7 +63,7 @@ private static final Logger log = LoggerFactory.getLogger(KafkaConsumerConfig.cl
         return ResponseEntity.ok(vehicleService.getAvailableVehicleCountsByCity(city));
     }
 
-    @PostMapping("/me/status/{userId}")
+    @PutMapping("/me/status/{userId}")
     public void updateMyLocation(@PathVariable String userId, @Valid @RequestBody UpdateDriverStatusDto statusDto) {
         driverService.updateDriverStatus(userId, statusDto);
     }

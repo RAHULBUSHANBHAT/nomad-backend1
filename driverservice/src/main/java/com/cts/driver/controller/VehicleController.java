@@ -2,7 +2,6 @@ package com.cts.driver.controller;
 
 import com.cts.driver.config.KafkaConsumerConfig;
 import com.cts.driver.dto.VehicleDto;
-import com.cts.driver.dto.VehicleTypeCountDto;
 import com.cts.driver.service.VehicleServiceImpl;
 import jakarta.validation.Valid;
 // import lombok.extern.slf4j.Slf4j;
@@ -62,12 +61,5 @@ public class VehicleController {
         log.info("Driver {} updating vehicle {}", getUserId(authentication), vehicleId);
         VehicleDto updatedVehicle = vehicleService.updateVehicle(getUserId(authentication), vehicleId, vehicleDto);
         return ResponseEntity.ok(updatedVehicle);
-    }
-
-    @GetMapping("/admin/drivers/me/vehicles/{driverId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<VehicleDto>> getVehiclesByDriverId(@PathVariable String driverId) {
-        log.info("Driver {} fetching vehicles", driverId);
-        return ResponseEntity.ok(vehicleService.getVehiclesByUserId(driverId));
     }
 }

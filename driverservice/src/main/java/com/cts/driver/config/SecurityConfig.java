@@ -36,7 +36,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
-                .anyRequest().authenticated()
+                .requestMatchers("/api/v1/internal/**").permitAll()
             )
             // Apply ONLY Layer 1 (The Gateway Key)
             .addFilterBefore(gatewayKeyFilter, UsernamePasswordAuthenticationFilter.class);

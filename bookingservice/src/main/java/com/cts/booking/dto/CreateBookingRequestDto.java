@@ -19,7 +19,5 @@ public class CreateBookingRequestDto {
     @NotNull
     private double dropoffLng;
     @NotBlank
-    private String city;
-    @NotBlank
     private String vehicleType;
 }

@@ -77,7 +77,7 @@ public class Booking {
     /**
      * Helper constructor to create a new PENDING booking from a request.
      */
-    public Booking(String riderUserId, CreateBookingRequestDto dto, double fare) {
+    public Booking(String riderUserId, CreateBookingRequestDto dto, String city, double fare) {
         this.riderUserId = riderUserId;
         this.pickupLocationName = dto.getPickupLocationName();
         this.dropoffLocationName = dto.getDropoffLocationName();
@@ -85,7 +85,7 @@ public class Booking {
         this.pickupLng = dto.getPickupLng();
         this.dropoffLat = dto.getDropoffLat();
         this.dropoffLng = dto.getDropoffLng();
-        this.city = dto.getCity();
+        this.city = city;
         this.vehicleType = dto.getVehicleType();
         this.fare = fare;
     }

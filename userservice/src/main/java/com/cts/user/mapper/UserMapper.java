@@ -16,7 +16,7 @@ public class UserMapper {
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
         user.setRole(dto.getRole());
-        user.setStatus(Status.PENDING); 
+        user.setStatus(Status.ACTIVE); 
         return user;
     }
 

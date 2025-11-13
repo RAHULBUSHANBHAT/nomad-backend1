@@ -1,9 +1,8 @@
 package com.cts.driver.model;
 
 public enum VehicleType {
-    MOTO,
+    BIKE,
     AUTO,
-    HATCHBACK,
     SEDAN,
     SUV
 }

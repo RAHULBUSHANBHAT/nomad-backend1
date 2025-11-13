@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,7 +78,6 @@ public class VehicleServiceImpl {
         vehicle.setVehicleType(vehicleDto.getVehicleType());
         vehicle.setRegistrationNumber(vehicleDto.getRegistrationNumber());
         vehicle.setModel(vehicleDto.getModel());
-        vehicle.setRcNumber(vehicleDto.getRcNumber());
         vehicle.setPucExpiry(vehicleDto.getPucExpiry());
         vehicle.setInsurancePolicyNumber(vehicleDto.getInsurancePolicyNumber());
         vehicle.setInsuranceExpiry(vehicleDto.getInsuranceExpiry());
@@ -90,6 +90,28 @@ public class VehicleServiceImpl {
 
     @Transactional(readOnly = true)
     public List<VehicleTypeCountDto> getAvailableVehicleCountsByCity(String city) {
-        return vehicleRepository.getAvailableVehicleCountsByCity(city);
+        
+        // 1. Get the counts that the database *does* have.
+        // This list might be incomplete (e.g., no SEDANs found).
+        List<VehicleTypeCountDto> dbCounts = vehicleRepository.getAvailableVehicleCountsByCity(city);
+
+        // 2. Convert the DB list into a Map for fast, O(1) lookups.
+        // We map: VehicleType -> availableCount
+        Map<VehicleType, Long> countMap = dbCounts.stream()
+            .collect(Collectors.toMap(
+                VehicleTypeCountDto::getVehicleType,
+                VehicleTypeCountDto::getAvailableCount
+            ));
+
+        // 3. Iterate through ALL possible VehicleType enums.
+        return Arrays.stream(VehicleType.values())
+            .map(type -> {
+                // 4. Get the count from the map, or default to 0L if not found.
+                long count = countMap.getOrDefault(type, 0L);
+                
+                // 5. Create a new DTO with the type and its count (0 or more).
+                return new VehicleTypeCountDto(type, count);
+            })
+            .collect(Collectors.toList());
     }
 }

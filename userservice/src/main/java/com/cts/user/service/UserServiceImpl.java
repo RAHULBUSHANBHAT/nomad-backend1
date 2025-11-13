@@ -207,7 +207,7 @@ public class UserServiceImpl {
     }
 
     @Transactional
-    public UserDto updateUser(String userId, UpdateUserDto updateUserDto) {
+    public UserDto updateUser(String userId, UpdateUserDto updateUserDto, String userRole) {
         log.info("Updating profile for user ID: {}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
@@ -216,7 +216,7 @@ public class UserServiceImpl {
         user.setLastName(updateUserDto.getLastName());
         user.setCity(updateUserDto.getCity());
         user.setState(updateUserDto.getState());
-        driverClient.updateMyLocation(user.getId(), new UpdateDriverStatusDto(updateUserDto.getCity()));
+        if(userRole.equals("DRIVER")) driverClient.updateMyLocation(user.getId(), new UpdateDriverStatusDto(updateUserDto.getCity()));
 
         User updatedUser = userRepository.save(user);
         return userMapper.toUserDto(updatedUser);

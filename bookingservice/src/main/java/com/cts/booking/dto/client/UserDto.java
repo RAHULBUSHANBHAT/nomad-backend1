@@ -10,4 +10,5 @@ public class UserDto {
     private String firstName;
     private String lastName;
     private float rating; // Important for the UI
+    private String city;
 }

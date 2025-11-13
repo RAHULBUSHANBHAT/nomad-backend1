@@ -50,6 +50,22 @@ public class BookingController {
         BookingDto newBooking = bookingService.requestRide(getUserId(authentication), dto);
         return new ResponseEntity<>(newBooking, HttpStatus.CREATED);
     }
+
+    @GetMapping("/bookings/active-ride/rider")
+    @PreAuthorize("hasRole('RIDER')")
+    public ResponseEntity<BookingDto> getActiveBookingForRider(Authentication authentication) {
+        log.info("Rider {} is requesting a their active ride", getUserId(authentication));
+        BookingDto newBooking = bookingService.getActiveRideForRider(getUserId(authentication));
+        return new ResponseEntity<>(newBooking, HttpStatus.OK);
+    }
+
+    @GetMapping("/bookings/active-ride/driver")
+    @PreAuthorize("hasRole('DRIVER')")
+    public ResponseEntity<BookingDto> getActiveBookingForDriver(Authentication authentication) {
+        log.info("Driver {} is requesting a their active ride", getUserId(authentication));
+        BookingDto newBooking = bookingService.getActiveRideForDriver(getUserId(authentication));
+        return new ResponseEntity<>(newBooking, HttpStatus.OK);
+    }
     
     @PostMapping("/driver/bookings/{id}/confirm-cash")
     @PreAuthorize("hasRole('DRIVER') and @securityService.isDriverOnBooking(authentication, #id)")
@@ -57,18 +73,18 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.confirmCashPayment(id, getUserId(authentication)));
     }
 
-    @GetMapping("/bookings/vehicle-types/{city}")
+    @GetMapping("/bookings/vehicle-types")
     @PreAuthorize("hasRole('RIDER')")
-    public ResponseEntity<?> getAvailableVehiclesCount(@PathVariable String city) {
-        log.info("Fetching all available vehicle types in city {}", city);
-        return new ResponseEntity<>(bookingService.getVehicleAvailability(city), HttpStatus.OK);
+    public ResponseEntity<?> getAvailableVehiclesCount(Authentication authentication) {
+        log.info("Fetching all available vehicle types");
+        return new ResponseEntity<>(bookingService.getVehicleAvailability(getUserId(authentication)), HttpStatus.OK);
     }
 
     @GetMapping("/bookings/me/history")
     @PreAuthorize("hasRole('RIDER')")
     public ResponseEntity<Page<BookingDto>> getRiderBookingHistory(
             Authentication authentication,
-            @Valid @RequestParam BookingFiltersDto bookingFiltersDto,
+            @Valid @RequestParam(required = false) BookingFiltersDto bookingFiltersDto,
             @PageableDefault(size = 20, sort = "requestTime", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("Rider {} fetching booking history", getUserId(authentication));
         return ResponseEntity.ok(bookingService.getBookingsForRider(getUserId(authentication), bookingFiltersDto, pageable));
@@ -96,7 +112,7 @@ public class BookingController {
     @PreAuthorize("hasRole('DRIVER')")
     public ResponseEntity<Page<BookingDto>> getMyDriverBookingHistory(
             Authentication authentication,
-            @Valid @RequestParam BookingFiltersDto bookingFiltersDto,
+            @Valid @RequestParam(required = false) BookingFiltersDto bookingFiltersDto,
             @PageableDefault(size = 20, sort = "requestTime", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("Driver {} fetching booking history", getUserId(authentication));
         return ResponseEntity.ok(bookingService.getBookingsForDriver(getUserId(authentication), bookingFiltersDto, pageable));

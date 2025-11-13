@@ -64,7 +64,6 @@ public class DriverServiceImpl {
         log.info("Updating verification info for user ID: {}", userId);
         Driver driver = findDriverByUserId(userId);
         driver.setAadharNumber(dto.getAadharNumber());
-        driver.setPanNumber(dto.getPanNumber());
         driver.setLicenseNumber(dto.getLicenseNumber());
         driver.setDriverLicenseExpiry(dto.getDriverLicenseExpiry());
         

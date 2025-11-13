@@ -9,8 +9,6 @@ import java.time.LocalDate;
 public class UpdateVerificationDto {
     @NotBlank(message = "Aadhaar number is required")
     private String aadharNumber;
-    @NotBlank(message = "PAN number is required")
-    private String panNumber;
     @NotBlank(message = "License number is required")
     private String licenseNumber;
     @Future(message = "License expiry date must be in the future")

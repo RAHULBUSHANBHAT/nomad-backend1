@@ -60,14 +60,14 @@ public class DriverController {
                                         @PathVariable String offerId,
                                         @RequestBody AcceptOfferRequestDto dto) { // Expecting JSON body
     
-    // Calling the 3-argument method
-    driverService.acceptOffer(getUserId(authentication), offerId, dto.getVehicleId());
-    return ResponseEntity.ok().build();
-}
+        // Calling the 3-argument method
+        driverService.acceptOffer(getUserId(authentication), offerId, dto.getVehicleId());
+        return ResponseEntity.ok().build();
+    }
     
     // --- ADMIN ENDPOINTS (for the admin panel) ---
 
-   @GetMapping("/admin/all")
+    @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<DriverProfileDto>> getAllDrivers(
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable,

@@ -13,7 +13,6 @@ public class VehicleMapper {
         dto.setVehicleType(entity.getVehicleType());
         dto.setRegistrationNumber(entity.getRegistrationNumber());
         dto.setModel(entity.getModel());
-        dto.setRcNumber(entity.getRcNumber());
         dto.setPucExpiry(entity.getPucExpiry());
         dto.setInsurancePolicyNumber(entity.getInsurancePolicyNumber());
         dto.setInsuranceExpiry(entity.getInsuranceExpiry());
@@ -32,7 +31,6 @@ public class VehicleMapper {
         entity.setVehicleType(dto.getVehicleType());
         entity.setRegistrationNumber(dto.getRegistrationNumber());
         entity.setModel(dto.getModel());
-        entity.setRcNumber(dto.getRcNumber());
         entity.setPucExpiry(dto.getPucExpiry());
         entity.setInsurancePolicyNumber(dto.getInsurancePolicyNumber());
         entity.setInsuranceExpiry(dto.getInsuranceExpiry());

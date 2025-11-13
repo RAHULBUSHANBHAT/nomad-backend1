@@ -29,4 +29,5 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
     Page<Booking> findByDriverUserIdAndRequestTimeBetween(String driverUserId, LocalDateTime start, LocalDateTime end, Pageable pageable);
 
     Optional<Booking> findByRiderUserIdAndStatusIn(String riderUserId, List<BookingStatus> activeStatuses);
+    Optional<Booking> findByDriverUserIdAndStatusIn(String driverUserId, List<BookingStatus> activeStatuses);
 }

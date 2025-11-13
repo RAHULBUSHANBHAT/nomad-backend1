@@ -13,11 +13,11 @@ public interface VehicleRepository extends JpaRepository<Vehicle, String> {
 @Query(value = "SELECT * FROM vehicles WHERE driver_id = :driverId", nativeQuery = true)
     List<Vehicle> findByDriverId(@Param("driverId") String driverId);
 
-    @Query("SELECT v.vehicleType as vehicleType, COUNT(v) as availableCount " +
-        "FROM Driver d JOIN d.vehicles v " +
-        "WHERE d.available = true " +
-        "AND d.currentCity = :city " +
-        "AND v.isVerified = true " +
-        "GROUP BY v.vehicleType")
+    @Query("SELECT new com.cts.driver.dto.VehicleTypeCountDto(v.vehicleType, COUNT(v)) " +
+           "FROM Driver d JOIN d.vehicles v " +
+           "WHERE d.available = true " +
+           "AND d.currentCity = :city " +
+           "AND v.isVerified = true " +
+           "GROUP BY v.vehicleType")
     List<VehicleTypeCountDto> getAvailableVehicleCountsByCity(@Param("city") String city);
 }

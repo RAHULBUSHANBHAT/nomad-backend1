@@ -142,6 +142,16 @@ spring:
               args:
                 allowedRoles: [ADMIN]
 
+        - id: ADMIN-DRIVER-MANAGEMENT
+          uri: lb://DRIVER-SERVICE
+          predicates:
+            - Path=/api/v1/admin/drivers/**
+          filters:
+            - JwtAuthenticationFilter
+            - name: RoleAuthorizationFilter
+              args:
+                allowedRoles: [ADMIN]
+
         - id: ADMIN-DRIVER-SERVICE
           uri: lb://DRIVER-SERVICE
           predicates:

@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,6 +26,15 @@ public class UserController {
 
     @Autowired
     private UserServiceImpl userService;
+
+    // Gets the role *without* the "ROLE_" prefix
+    private String getUserRole(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .map(role -> role.replace("ROLE_", ""))
+                .orElse("");
+    }
 
     /**
      * Public endpoint for user registration.
@@ -56,8 +66,9 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserDto> updateCurrentUser(Authentication authentication, @Valid @RequestBody UpdateUserDto updateUserDto) {
         String userId = (String) authentication.getDetails();
+        String userRole = getUserRole(authentication);
         log.info("Updating profile for /me, authenticated user ID: {}", userId);
-        UserDto updatedUser = userService.updateUser(userId, updateUserDto);
+        UserDto updatedUser = userService.updateUser(userId, updateUserDto, userRole);
         return ResponseEntity.ok(updatedUser);
     }
 

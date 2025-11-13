@@ -23,7 +23,6 @@ import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
 
 @Service
 @Slf4j
@@ -44,17 +43,22 @@ public class BookingService {
     // --- 1. REQUEST RIDE ---
     @Transactional
     public BookingDto requestRide(String riderUserId, CreateBookingRequestDto dto) {
-        FareConfig fareConfig = fareConfigRepository.findByCityAndVehicleType(dto.getCity(), dto.getVehicleType())
-                .orElseThrow(() -> new BookingException("Service not available in " + dto.getCity()));
+        UserDto rider = userClient.getUserById(riderUserId);
+
+        if(rider.getCity() == "") {
+            throw new BookingException("Please add city in your profile first.");
+        } 
         
-        List<BookingStatus> activeStatuses = List.of(BookingStatus.PENDING, BookingStatus.ACCEPTED, BookingStatus.IN_PROGRESS, BookingStatus.AWAITING_PAYMENT);
-        if (bookingRepository.findByRiderUserIdAndStatusIn(riderUserId, activeStatuses).isPresent()) {
+        FareConfig fareConfig = fareConfigRepository.findByCityAndVehicleType(rider.getCity(), dto.getVehicleType())
+                .orElseThrow(() -> new BookingException("Service not available in " + rider.getCity()));
+        
+        if (getActiveRideForRider(riderUserId) != null) {
             throw new BookingException("You already have an active ride.");
         }
 
         double estimatedFare = fareConfig.getBaseFare() + (fareConfig.getRatePerKm() * 10.0); 
 
-        Booking booking = new Booking(riderUserId, dto, estimatedFare);
+        Booking booking = new Booking(riderUserId, dto, rider.getCity(), estimatedFare);
         Booking savedBooking = bookingRepository.save(booking);
         
         // Send Kafka Event (Include Fare)
@@ -66,8 +70,24 @@ public class BookingService {
         return bookingMapper.toDto(savedBooking);
     }
 
-    public ResponseEntity<?> getVehicleAvailability(String city) {
-        return driverClient.getAvailableVehiclesInCity(city);
+    public BookingDto getActiveRideForRider(String riderUserId) {
+        List<BookingStatus> activeStatuses = List.of(BookingStatus.PENDING, BookingStatus.ACCEPTED, BookingStatus.IN_PROGRESS, BookingStatus.AWAITING_PAYMENT, BookingStatus.PAID);
+        Booking activeBooking = bookingRepository.findByRiderUserIdAndStatusIn(riderUserId, activeStatuses).orElse(null);
+        if(activeBooking == null) throw new ResourceNotFoundException("No active booking found.");
+        return bookingMapper.toDto(activeBooking);
+    }
+
+    public BookingDto getActiveRideForDriver(String driverUserId) {
+        List<BookingStatus> activeStatuses = List.of(BookingStatus.ACCEPTED, BookingStatus.IN_PROGRESS, BookingStatus.AWAITING_PAYMENT);
+        Booking activeBooking = bookingRepository.findByDriverUserIdAndStatusIn(driverUserId, activeStatuses).orElse(null);
+        if(activeBooking == null) throw new ResourceNotFoundException("No active booking found.");
+        return bookingMapper.toDto(activeBooking);
+    }
+
+    public ResponseEntity<?> getVehicleAvailability(String riderId) {
+        UserDto rider = userClient.getUserById(riderId);
+        if(rider == null) throw new ResourceNotFoundException("Rider not found.");
+        return driverClient.getAvailableVehiclesInCity(rider.getCity());
     }
 
     // --- 2. ASSIGN DRIVER (Called by Driver Service) ---
@@ -238,8 +258,8 @@ public class BookingService {
     // --- 8. VIEW METHODS (Filters) ---
     @Transactional(readOnly = true)
     public Page<BookingDto> getBookingsForRider(String riderUserId, BookingFiltersDto bookingFiltersDto, Pageable pageable) {
-        String searchTerm = bookingFiltersDto.getSearchTerm();
-        String filterType = bookingFiltersDto.getFilterType() != null ? bookingFiltersDto.getFilterType() : "";
+        String filterType = bookingFiltersDto != null ? bookingFiltersDto.getFilterType() : "";
+        String searchTerm = bookingFiltersDto != null ? bookingFiltersDto.getSearchTerm() : "";
         
         return switch (filterType.toLowerCase()) {
             case "status" ->
@@ -262,8 +282,8 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public Page<BookingDto> getBookingsForDriver(String driverUserId, BookingFiltersDto bookingFiltersDto, Pageable pageable) {
-        String searchTerm = bookingFiltersDto.getSearchTerm();
-        String filterType = bookingFiltersDto.getFilterType() != null ? bookingFiltersDto.getFilterType() : "";
+        String filterType = bookingFiltersDto != null ? bookingFiltersDto.getFilterType() : "";
+        String searchTerm = bookingFiltersDto != null ? bookingFiltersDto.getSearchTerm() : "";
         
         return switch (filterType.toLowerCase()) {
             case "status" ->

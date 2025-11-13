@@ -17,7 +17,6 @@ public class VehicleDto {
     @NotBlank(message = "Model is required")
     private String model;
     
-    private String rcNumber;
     private LocalDate pucExpiry;
     private String insurancePolicyNumber;
     private LocalDate insuranceExpiry;
