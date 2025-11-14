@@ -18,6 +18,4 @@ public class FareConfigDto {
     private double baseFare;
     @Positive
     private double ratePerKm;
-    @Positive
-    private double ratePerMinute;
 }

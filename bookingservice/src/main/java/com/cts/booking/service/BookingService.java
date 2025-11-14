@@ -9,6 +9,8 @@ import com.cts.booking.exception.*;
 import com.cts.booking.mapper.BookingMapper;
 import com.cts.booking.model.*;
 import com.cts.booking.repository.*;
+
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,30 +42,59 @@ public class BookingService {
     @Value("${app.kafka.topics.booking-events}") private String bookingEventsTopic;
     @Value("${app.commission-rate}") private double commissionRate;
 
+    @Transactional(readOnly = true)
+    public EstimatedFareResponseDto estimateFare(String riderUserId, EstimateFareRequestDto dto) {
+        UserDto rider = userClient.getUserById(riderUserId);
+
+        // 1. Find the fare configuration
+        FareConfig fareConfig = fareConfigRepository.findByCityAndVehicleType(rider.getCity(), dto.getVehicleType())
+                .orElseThrow(() -> new BookingException("Service not available in " + rider.getCity() + " for " + dto.getVehicleType()));
+
+        // 2. Calculate the fare using the private helper
+        double distanceInKm = calculateHaversineDistance(dto.getPickupLat(), dto.getPickupLng(), dto.getDropoffLat(), dto.getDropoffLng());
+        double totalFare = calculateFare(fareConfig, distanceInKm);
+        double distanceFare = fareConfig.getRatePerKm() * distanceInKm;
+
+        // 3. Build and return the response DTO
+        return EstimatedFareResponseDto.builder()
+                .city(rider.getCity())
+                .vehicleType(dto.getVehicleType())
+                .distanceInKm(distanceInKm)
+                .baseFare(fareConfig.getBaseFare())
+                .distanceFare(distanceFare)
+                .totalFare(totalFare)
+                .build();
+    }
+
     // --- 1. REQUEST RIDE ---
     @Transactional
     public BookingDto requestRide(String riderUserId, CreateBookingRequestDto dto) {
-        UserDto rider = userClient.getUserById(riderUserId);
+        UserDto rider = userClient.getUserById(riderUserId); // Already fetching the rider DTO
 
-        if(rider.getCity() == "") {
+        if(rider.getCity() == null || rider.getCity().isEmpty()) { // Added null check
             throw new BookingException("Please add city in your profile first.");
         } 
         
         FareConfig fareConfig = fareConfigRepository.findByCityAndVehicleType(rider.getCity(), dto.getVehicleType())
                 .orElseThrow(() -> new BookingException("Service not available in " + rider.getCity()));
         
-        if (getActiveRideForRider(riderUserId) != null) {
+        if (getActiveBooking(riderUserId) != null) {
             throw new BookingException("You already have an active ride.");
         }
 
-        double estimatedFare = fareConfig.getBaseFare() + (fareConfig.getRatePerKm() * 10.0); 
+        double distanceInKm = calculateHaversineDistance(dto.getPickupLat(), dto.getPickupLng(), dto.getDropoffLat(), dto.getDropoffLng());
+        double estimatedFare = calculateFare(fareConfig, distanceInKm);
 
-        Booking booking = new Booking(riderUserId, dto, rider.getCity(), estimatedFare);
+        // --- MODIFIED CONSTRUCTOR ---
+        // Pass the full 'rider' DTO to populate snapshot fields
+        Booking booking = new Booking(riderUserId, rider, dto, rider.getCity(), estimatedFare);
         Booking savedBooking = bookingRepository.save(booking);
         
         // Send Kafka Event (Include Fare)
         RideRequestEventDto event = new RideRequestEventDto(
-            savedBooking.getId(), savedBooking.getCity(), savedBooking.getVehicleType(), savedBooking.getFare()
+            savedBooking.getId(), savedBooking.getCity(), savedBooking.getVehicleType(),
+            savedBooking.getFare(), savedBooking.getPickupLocationName(),
+            savedBooking.getDropoffLocationName(), distanceInKm
         );
         kafkaTemplate.send(rideRequestsTopic, savedBooking.getId(), event);
         
@@ -71,8 +102,7 @@ public class BookingService {
     }
 
     public BookingDto getActiveRideForRider(String riderUserId) {
-        List<BookingStatus> activeStatuses = List.of(BookingStatus.PENDING, BookingStatus.ACCEPTED, BookingStatus.IN_PROGRESS, BookingStatus.AWAITING_PAYMENT, BookingStatus.PAID);
-        Booking activeBooking = bookingRepository.findByRiderUserIdAndStatusIn(riderUserId, activeStatuses).orElse(null);
+        Booking activeBooking = getActiveBooking(riderUserId);
         if(activeBooking == null) throw new ResourceNotFoundException("No active booking found.");
         return bookingMapper.toDto(activeBooking);
     }
@@ -98,18 +128,73 @@ public class BookingService {
             throw new BookingException("Ride no longer available.");
         }
         
+        // --- FETCH DRIVER PROFILE DATA ---
+        UserDto driverProfile = null;
+        try {
+            // We assume UserClient returns all profile data (name, phone, rating, etc.)
+            driverProfile = userClient.getUserById(driverUserId);
+        } catch (Exception e) {
+            log.warn("Could not fetch driver profile for booking {}: {}. Proceeding without profile snapshot.", bookingId, e.getMessage());
+        }
+        
+        // --- SET DRIVER FIELDS ---
         booking.setDriverUserId(driverUserId);
         booking.setVehicleId(vehicleId);
         booking.setStatus(BookingStatus.ACCEPTED);
         booking.setAcceptedTime(LocalDateTime.now());
+        
+        // --- POPULATE SNAPSHOT FIELDS ---
+        if (driverProfile != null) {
+            booking.setDriverName(driverProfile.getFirstName() + " " + driverProfile.getLastName());
+            booking.setDriverPhoneNumber(driverProfile.getPhoneNumber());
+            List<BookingStatus> completedStatuses = List.of(BookingStatus.PAID, BookingStatus.COMPLETED);
+            long totalTrips = bookingRepository.countByDriverUserIdAndStatusIn(driverUserId, completedStatuses);
+            
+            // ** IMPORTANT **
+            // I am assuming your 'UserDto' has these getters based on your request.
+            // If your DTO has different names (e.g., getOverallRating), 
+            // you must change these lines.
+            booking.setDriverProfileRating(driverProfile.getRating()); // Assuming getRating() returns a Double
+            booking.setTotalTrips(totalTrips);     // Assuming getTotalTrips() returns an Integer
+            booking.setDriverCreatedAt(driverProfile.getCreatedAt()); // Assuming getCreatedAt() returns LocalDateTime
+        }
         
         Booking savedBooking = bookingRepository.save(booking);
         kafkaTemplate.send(bookingEventsTopic, savedBooking.getId(), BookingEventDto.fromBooking(savedBooking));
         log.info("Assigned driver {} to booking {}", driverUserId, bookingId);
     }
 
+    @Transactional
+    public BookingDto startRide(String bookingId, String driverUserId) {
+        Booking booking = findBooking(bookingId);
+        
+        // 1. Verify the driver owns this ride
+        if (!booking.getDriverUserId().equals(driverUserId)) {
+            throw new AccessDeniedException("This is not your ride.");
+        }
+
+        // 2. Verify the ride is in the correct state
+        if (booking.getStatus() != BookingStatus.ACCEPTED) {
+            throw new BookingException("Ride cannot be started. Status is not ACCEPTED.");
+        }
+
+        // 3. Update the booking
+        booking.setStatus(BookingStatus.IN_PROGRESS);
+        booking.setPickupTime(LocalDateTime.now());
+        
+        Booking savedBooking = bookingRepository.save(booking);
+        
+        // 4. Send Kafka event
+        kafkaTemplate.send(bookingEventsTopic, savedBooking.getId(), BookingEventDto.fromBooking(savedBooking));
+        
+        log.info("Driver {} started ride for booking {}", driverUserId, bookingId);
+        
+        // 5. Return the updated DTO
+        return bookingMapper.toDto(savedBooking);
+    }
+    
     // --- 3. COMPLETE RIDE ---
-     @Transactional
+    @Transactional
     public BookingDto completeRide(String driverUserId, String bookingId) {
         Booking booking = findBooking(bookingId);
         if (!booking.getDriverUserId().equals(driverUserId)) throw new BookingException("Not your ride.");
@@ -217,17 +302,26 @@ public class BookingService {
     
     // --- 6. FEEDBACK ---
     @Transactional
-    public void addFeedback(String bookingId, String riderUserId, int rating) {
+    public void addFeedback(String bookingId, String riderUserId, AddRatingRequestDto dto) {
         Booking booking = findBooking(bookingId);
         if (!booking.getRiderUserId().equals(riderUserId)) throw new BookingException("Unauthorized.");
         if (booking.getStatus() != BookingStatus.PAID && booking.getStatus() != BookingStatus.COMPLETED) throw new BookingException("Ride not paid.");
         if (booking.getDriverRating() != null) throw new BookingException("Already rated.");
 
-        booking.setDriverRating(rating);
+        if(dto == null) {
+            booking.setStatus(BookingStatus.COMPLETED);
+            bookingRepository.save(booking);
+            return;
+        }
+        booking.setDriverRating(dto.getRating());
         if (booking.getStatus() == BookingStatus.PAID) booking.setStatus(BookingStatus.COMPLETED);
         
         bookingRepository.save(booking);
-        try { userClient.addRating(booking.getDriverUserId(), new AddRatingRequestDto(rating)); } catch (Exception e) { log.error("Rating sync failed", e); }
+        try { 
+            userClient.addRating(booking.getDriverUserId(), new AddRatingRequestDto(dto.getRating()));
+        } catch (Exception e) {
+            log.error("Rating sync failed", e);
+        }
     }
     
     // --- 7. CANCELLATION ---
@@ -330,14 +424,64 @@ public class BookingService {
         config.setVehicleType(dto.getVehicleType());
         config.setBaseFare(dto.getBaseFare());
         config.setRatePerKm(dto.getRatePerKm());
-        config.setRatePerMinute(dto.getRatePerMinute());
         
         return fareConfigRepository.save(config);
+    }
+
+    @Transactional
+    public FareConfig updateFare(String id, FareConfigDto fareDetails) {
+        // 1. Find the existing fare config by its ID
+        FareConfig existingConfig = fareConfigRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("FareConfig not found with id: " + id));
+
+        // 2. Update the fields from the incoming data
+        existingConfig.setCity(fareDetails.getCity());
+        existingConfig.setState(fareDetails.getState());
+        existingConfig.setVehicleType(fareDetails.getVehicleType());
+        existingConfig.setBaseFare(fareDetails.getBaseFare());
+        existingConfig.setRatePerKm(fareDetails.getRatePerKm());
+        
+        // 3. Save the updated entity and return it
+        return fareConfigRepository.save(existingConfig);
+    }
+
+    @Transactional
+    public void deleteFare(String id) {
+        // 1. Check if the entity exists before trying to delete it
+        if (!fareConfigRepository.existsById(id)) {
+            throw new EntityNotFoundException("FareConfig not found with id: " + id);
+        }
+        
+        // 2. Delete the entity
+        fareConfigRepository.deleteById(id);
     }
 
     // --- HELPER ---
     private Booking findBooking(String bookingId) {
         return bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found: " + bookingId));
+    }
+
+    private Booking getActiveBooking(String riderUserId) {
+        List<BookingStatus> activeStatuses = List.of(BookingStatus.PENDING, BookingStatus.ACCEPTED, BookingStatus.IN_PROGRESS, BookingStatus.AWAITING_PAYMENT, BookingStatus.PAID);
+        return bookingRepository.findByRiderUserIdAndStatusIn(riderUserId, activeStatuses).orElse(null);
+    }
+
+    private double calculateFare(FareConfig fareConfig, double distanceInKm) {
+        if (distanceInKm < 0) {
+            distanceInKm = 0; // Prevent negative fares
+        }
+        return fareConfig.getBaseFare() + (fareConfig.getRatePerKm() * distanceInKm);
+    }
+
+    private double calculateHaversineDistance(double lat1, double lon1, double lat2, double lon2) {
+        double R = 6371; // Radius of Earth in km
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // distance in km
     }
 }

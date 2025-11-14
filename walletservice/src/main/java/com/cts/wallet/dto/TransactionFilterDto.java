@@ -14,11 +14,11 @@ public class TransactionFilterDto {
     @Size(max = 100, message = "Search term cannot exceed 100 characters")
     private String searchTerm;
 
-    @Pattern(regexp = "^(DEPOSIT|WITHDRAWAL|RIDE_DEBIT|RIDE_CREDIT|COMMISSION_FEE)$",
-             message = "Invalid transaction type")
-    private String type;
+    @Pattern(regexp = "^(ALL|WALLET|CASH)$",
+             message = "Invalid payment mode")
+    private String paymentMode; // This field is correct
 
-    @Pattern(regexp = "^(equal|greater|less)$", 
+    @Pattern(regexp = "^(ALL|EQUAL|GREATER|LESS)$", 
              message = "Invalid fare filter. Must be 'equal', 'greater', or 'less'")
     private String fareFilter;
 
@@ -28,9 +28,10 @@ public class TransactionFilterDto {
     @PastOrPresent(message = "Filter date cannot be in the future")
     private LocalDate dateFilter;
 
-    @AssertTrue(message = "fareValue must be provided if fareFilter is set")
+    @AssertTrue(message = "fareValue must be provided when a fareFilter (other than 'ALL') is set")
     private boolean isFareFilterValid() {
-        if (this.fareFilter != null) {
+        if (this.fareFilter != null && !this.fareFilter.equals("ALL")) {
+            // If filter is EQUAL, GREATER, or LESS, a value is required
             return this.fareValue != null;
         }
         return true;
@@ -39,6 +40,7 @@ public class TransactionFilterDto {
     @AssertTrue(message = "fareFilter must be provided if fareValue is set")
     private boolean isFareValueValid() {
         if (this.fareValue != null) {
+            // If a value is given, a filter (even "ALL") must be present
             return this.fareFilter != null;
         }
         return true;

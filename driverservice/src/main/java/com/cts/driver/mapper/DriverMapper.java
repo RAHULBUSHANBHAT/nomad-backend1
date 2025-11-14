@@ -29,4 +29,18 @@ public class DriverMapper {
                 .driverLicenseExpiry(driver.getDriverLicenseExpiry())
                 .build();
     }
+
+    public DriverProfileDto toDriverProfileDto(Driver driver) {
+        return DriverProfileDto.builder()
+                .userId(driver.getUserId())
+                .driverId(driver.getId())
+                .available(driver.isAvailable())
+                .currentCity(driver.getCurrentCity())
+                .aadharNumber(driver.getAadharNumber())
+                .isAadhaarVerified(driver.isAadhaarVerified())
+                .licenseNumber(driver.getLicenseNumber())
+                .isDriverLicenseVerified(driver.isDriverLicenseVerified())
+                .driverLicenseExpiry(driver.getDriverLicenseExpiry())
+                .build();
+    }
 }

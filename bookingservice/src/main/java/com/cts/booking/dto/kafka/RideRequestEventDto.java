@@ -11,5 +11,8 @@ public class RideRequestEventDto {
     private String bookingId;
     private String city;
     private String vehicleType;
-    private double fare; // <-- Added
+    private double fare;
+    private String pickupLocationName;
+    private String dropoffLocationName;
+    private double estimatedDistanceKm;
 }

@@ -1,7 +1,7 @@
 package com.cts.wallet.repository;
 
+import com.cts.wallet.model.PaymentMode; // <-- CHANGED
 import com.cts.wallet.model.RideTransaction;
-import com.cts.wallet.model.TransactionType;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import java.time.LocalDate;
@@ -10,20 +10,13 @@ import java.time.LocalTime;
 @Component
 public class TransactionSpecification {
 
-    public Specification<RideTransaction> hasType(String type) {
+    public Specification<RideTransaction> hasPaymentMode(String mode) {
         return (root, query, cb) -> {
-            if (type == null || type.equals("all") || type.isEmpty()) {
-                return cb.conjunction();
-            }
-            
+            if (mode == null || mode.equals("ALL") || mode.isEmpty()) return cb.conjunction();
             try {
-                // 2. Convert the string to the *BookingStatus* enum
-                TransactionType transactionType = TransactionType.valueOf(type.toUpperCase());
-                
-                // 3. Filter on the 'bookingStatus' field in your Transaction entity
-                return cb.equal(root.get("type"), transactionType); 
+                PaymentMode paymentMode = PaymentMode.valueOf(mode.toUpperCase());
+                return cb.equal(root.get("paymentMode"), paymentMode); 
             } catch (IllegalArgumentException e) {
-                // Frontend sent an invalid status (like "pickup"), so just return all
                 return cb.conjunction();
             }
         };
@@ -31,34 +24,25 @@ public class TransactionSpecification {
 
     public Specification<RideTransaction> hasBookingId(String bookingId) {
         return (root, query, cb) -> {
-            if (bookingId == null || bookingId.isEmpty()) {
-                return cb.conjunction();
-            }
-            // 'bookingId' is the field in your Transaction entity
-            return cb.like(root.get("related_booking_id"), "%" + bookingId + "%");
+            if (bookingId == null || bookingId.isEmpty()) return cb.conjunction();
+            return cb.like(root.get("bookingId"), "%" + bookingId + "%");
         };
     }
 
     public Specification<RideTransaction> hasDate(LocalDate date) {
         return (root, query, cb) -> {
-            if (date == null) {
-                return cb.conjunction();
-            }
-            // 'timestamp' is the field from your component's logic
+            if (date == null) return cb.conjunction();
             return cb.between(root.get("timestamp"), date.atStartOfDay(), date.atTime(LocalTime.MAX));
         };
     }
 
     public Specification<RideTransaction> hasFare(String filter, Double value) {
         return (root, query, cb) -> {
-            if (filter == null || value == null || filter.equals("all")) {
-                return cb.conjunction();
-            }
-            // 'totalFare' is the field in your Transaction entity
+            if (filter == null || value == null || filter.equals("ALL")) return cb.conjunction();
             return switch (filter) {
-                case "equal" -> cb.equal(root.get("amount"), value);
-                case "greater" -> cb.greaterThanOrEqualTo(root.get("amount"), value);
-                case "less" -> cb.lessThanOrEqualTo(root.get("amount"), value);
+                case "EQUAL" -> cb.equal(root.get("totalFare"), value);
+                case "GREATER" -> cb.greaterThanOrEqualTo(root.get("totalFare"), value);
+                case "LESS" -> cb.lessThanOrEqualTo(root.get("totalFare"), value);
                 default -> cb.conjunction();
             };
         };

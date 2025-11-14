@@ -51,4 +51,5 @@ public class VehicleDto {
     // but you can use @NotNull if you want to force the frontend to send a value.
     private boolean isPucVerified;
     private boolean isInsuranceVerified;
+    private boolean isRcVerified;
 }

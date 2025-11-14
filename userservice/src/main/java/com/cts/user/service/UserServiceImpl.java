@@ -19,8 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cts.user.client.DriverClient;
 import com.cts.user.client.WalletClient;
 import com.cts.user.dto.AdminDashboardDto;
+import com.cts.user.dto.DriverStatsDto;
 import com.cts.user.dto.RegisterUserDto;
-import com.cts.user.dto.TransactionDto;
+import com.cts.user.dto.RideTransactionInternalDto;
 import com.cts.user.dto.UpdateDriverStatusDto;
 import com.cts.user.dto.UpdateUserDto;
 import com.cts.user.dto.UserDto;
@@ -125,18 +126,20 @@ public class UserServiceImpl {
 
         // 1. Fetch counts (these are fast, run in parallel)
         long totalRiders = userRepository.countByRole(Role.RIDER);
-        long totalDrivers = driverClient.getDriverCount(); // Feign call
+        DriverStatsDto driverStatsDto = driverClient.getDriversAndVehiclesCount();
 
         // 2. Fetch financials (these are fast, run in parallel)
         WalletDto companyWallet = walletClient.getWalletByUserIdInternal(companyWalletUserId); // Feign call
-        List<TransactionDto> latestTx = walletClient.getLatestTransactions(); // Feign call
+        RideTransactionInternalDto transactionsDetails = walletClient.getTransactionsDetails(); // Feign call
 
         // 3. Build and return the DTO
         return AdminDashboardDto.builder()
                 .totalRiders(totalRiders)
-                .totalDrivers(totalDrivers)
+                .totalDrivers(driverStatsDto.getDriverCount())
+                .totalVehicles(driverStatsDto.getVehicleCount())
                 .companyWalletBalance(companyWallet.getBalance())
-                .latestTransactions(latestTx)
+                .latestTransactions(transactionsDetails.getLatestTransactions())
+                .successfulTrips(transactionsDetails.getSuccessfulTransactions())
                 .build();
     }
 
@@ -162,33 +165,20 @@ public class UserServiceImpl {
    public Page<UserDto> getAllRiders(Pageable pageable, String filterType, String searchContent) {
         
         // --- FILTER LOGIC ---
+        Page<User> users = null;
         if (filterType != null && searchContent != null && !searchContent.isEmpty()) {
             log.info("Admin searching Riders. Type: {}, Content: {}", filterType, searchContent);
-            
-            Optional<User> userOptional = Optional.empty();
-
-            // Switch based on the generic filterType
-            if ("EMAIL".equalsIgnoreCase(filterType)) {
-                userOptional = userRepository.findByEmailAndRole(searchContent, Role.RIDER);
-            } 
-            else if ("PHONE".equalsIgnoreCase(filterType)) {
-                // Ensure this matches the database column (phoneNumber)
-                userOptional = userRepository.findByPhoneNumberAndRole(searchContent, Role.RIDER);
-            }
-
-            // If no user found, return empty page
-            if (userOptional.isEmpty()) {
-                return Page.empty();
-            }
-
-            // Return Page with 1 result
-            return new PageImpl<>(Collections.singletonList(userMapper.toUserDto(userOptional.get())), pageable, 1);
-        }
+            if ("EMAIL".equalsIgnoreCase(filterType))
+                users = userRepository.findByRoleAndEmailContains(Role.RIDER, searchContent, pageable);
+            else if ("PHONE".equalsIgnoreCase(filterType))
+                users = userRepository.findByRoleAndPhoneNumberContains(Role.RIDER, searchContent, pageable);
+        } else users = userRepository.findByRole(Role.RIDER, pageable);
 
         // --- DEFAULT: NO FILTER (Fetch All Riders) ---
         log.info("Admin request: Fetching all RIDERs, page {} of size {}", pageable.getPageNumber(), pageable.getPageSize());
-        return userRepository.findByRole(Role.RIDER, pageable)
-                .map(userMapper::toUserDto);
+        return users.map(user -> {
+            return userMapper.toUserDto(user);
+        });
     }
 
 

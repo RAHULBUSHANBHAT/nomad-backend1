@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cts.wallet.dto.RideTransactionInternalDto;
 import com.cts.wallet.dto.TransactionFilterDto;
 import com.cts.wallet.dto.WalletDto;
 import com.cts.wallet.dto.WalletTransactionDto;
@@ -18,6 +19,7 @@ import com.cts.wallet.dto.internal.RidePaymentRequestDto;
 import com.cts.wallet.exception.InsufficientFundsException;
 import com.cts.wallet.exception.ResourceNotFoundException;
 import com.cts.wallet.mapper.WalletMapper;
+import com.cts.wallet.model.PaymentMode;
 import com.cts.wallet.model.RideTransaction;
 import com.cts.wallet.model.TransactionType;
 import com.cts.wallet.model.Wallet;
@@ -66,17 +68,20 @@ public class WalletService {
     }
 
     @Transactional(readOnly = true)
-    public Page<WalletTransactionDto> getAllWalletTransactions(TransactionFilterDto filters, Pageable pageable) {
+    public Page<WalletTransactionDto> getAllWalletTransactions(Pageable pageable) {
         return walletTransactionRepository.findAll(pageable).map(walletMapper::toWalletTransactionDto);
     }
 
     @Transactional(readOnly = true)
     public Page<RideTransaction> getAllRideTransactions(TransactionFilterDto filters, Pageable pageable) {
+        if(filters == null) return rideTransactionRepository.findAll(pageable);
+        
         Specification<RideTransaction> spec = Specification
-            .where(specBuilder.hasBookingId(filters.getSearchTerm()))
-            .and(specBuilder.hasType(filters.getType()))
-            .and(specBuilder.hasFare(filters.getFareFilter(), filters.getFareValue()))
-            .and(specBuilder.hasDate(filters.getDateFilter()));
+                .where(specBuilder.hasBookingId(filters.getSearchTerm()))
+                .and(specBuilder.hasPaymentMode(filters.getPaymentMode()))
+                .and(specBuilder.hasFare(filters.getFareFilter(), filters.getFareValue()))
+                .and(specBuilder.hasDate(filters.getDateFilter()));
+                
         return rideTransactionRepository.findAll(spec, pageable);
     }
 
@@ -115,13 +120,10 @@ public class WalletService {
 
     @Transactional
     public void processCashPayment(RidePaymentRequestDto dto) {
+        Wallet riderWallet = getWallet(dto.getRiderUserId());
         Wallet driverWallet = getWallet(dto.getDriverUserId());
         Wallet companyWallet = getWallet(companyWalletUserId);
         double commission = dto.getCommissionFee();
-
-        if (driverWallet.getBalance() < commission) {
-            throw new InsufficientFundsException("Driver balance too low for commission.");
-        }
 
         // Deduct Commission Only
         driverWallet.setBalance(driverWallet.getBalance() - commission);
@@ -130,6 +132,7 @@ public class WalletService {
         walletRepository.save(driverWallet);
         walletRepository.save(companyWallet);
 
+        logTransaction(riderWallet.getId(), dto.getTotalFare(), TransactionType.RIDE_DEBIT, dto.getBookingId());
         logTransaction(driverWallet.getId(), -commission, TransactionType.COMMISSION_FEE, dto.getBookingId());
         logTransaction(companyWallet.getId(), commission, TransactionType.COMMISSION_FEE, dto.getBookingId());
         
@@ -159,9 +162,11 @@ public class WalletService {
     }
 
     @Transactional(readOnly = true)
-    public List<WalletTransactionDto> getLatest5Transactions() {
-        return walletTransactionRepository.findAll(Sort.by(Sort.Direction.DESC, "timestamp"))
-                .stream().limit(5).map(walletMapper::toWalletTransactionDto).toList();
+    public RideTransactionInternalDto getLatest5Transactions() {
+        long successfulTransactions = rideTransactionRepository.count();
+        List<RideTransaction> latestTransactions = rideTransactionRepository.findAll(Sort.by(Sort.Direction.DESC, "timestamp"))
+                .stream().limit(5).toList();
+        return new RideTransactionInternalDto(successfulTransactions, latestTransactions);
     }
 
     @Transactional
@@ -208,6 +213,8 @@ public class WalletService {
         rt.setRiderId(dto.getRiderUserId());
         rt.setRiderName(dto.getRiderName()); // Fill details from DTO
         rt.setRiderPhone(dto.getRiderPhone());
+
+        rt.setPaymentMode(mode == "WALLET" ? PaymentMode.WALLET : PaymentMode.CASH);
         
         rt.setDriverId(dto.getDriverUserId());
         rt.setDriverName(dto.getDriverName());
