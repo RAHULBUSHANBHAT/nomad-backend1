@@ -20,14 +20,19 @@ public class VehicleDto {
     private VehicleType vehicleType;
 
     @NotBlank(message = "Registration number is required")
-    // Covers formats like KA01AB1234 or DL12C1234
     @Pattern(regexp = "^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{4}$", message = "Invalid Vehicle Registration Number format")
     private String registrationNumber;
+
+    @NotBlank(message = "PUC Number is required")
+    private String manufacturer;
 
     @NotBlank(message = "Model is required")
     @Size(min = 2, max = 50, message = "Model name must be between 2 and 50 characters")
     private String model;
-
+    
+    @NotBlank(message = "PUC Number is required")
+    private String color;
+    
     @NotBlank(message = "RC Number is required")
     @Size(min = 5, max = 20, message = "RC Number must be valid")
     private String rcNumber;
@@ -47,8 +52,6 @@ public class VehicleDto {
     @NotBlank(message = "PUC Number is required")
     private String pucNumber;
 
-    // Booleans usually don't need validation as they default to false, 
-    // but you can use @NotNull if you want to force the frontend to send a value.
     private boolean isPucVerified;
     private boolean isInsuranceVerified;
     private boolean isRcVerified;

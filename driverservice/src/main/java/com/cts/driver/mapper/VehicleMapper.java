@@ -34,6 +34,8 @@ public class VehicleMapper {
         entity.setModel(dto.getModel());
         entity.setPucExpiry(dto.getPucExpiry());
         entity.setManufacturer(dto.getManufacturer());
+        entity.setModel(dto.getModel());
+        entity.setColor(dto.getColor());
         entity.setInsurancePolicyNumber(dto.getInsurancePolicyNumber());
         entity.setInsuranceExpiry(dto.getInsuranceExpiry());
         entity.setPucNumber(dto.getPucNumber());

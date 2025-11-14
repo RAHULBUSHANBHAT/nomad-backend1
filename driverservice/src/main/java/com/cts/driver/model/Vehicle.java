@@ -30,6 +30,9 @@ public class Vehicle {
     
     @Column(name = "model", nullable = false)
     private String model; // e.g., "Suzuki Dzire"
+
+    @Column(name = "color", nullable = false)
+    private String color;
     
     @Column(name = "is_verified") // Admin verification
     private boolean isVerified = false;
