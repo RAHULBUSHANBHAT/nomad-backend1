@@ -9,7 +9,7 @@ import lombok.Data;
 
 @Data
 public class VehicleDto {
-    private String id;
+    private String id;  
     @NotNull(message = "Vehicle type is required")
     private VehicleType vehicleType;
     @NotBlank(message = "Registration number is required")

@@ -1,19 +1,15 @@
 package com.cts.wallet.controller;
-import com.cts.wallet.dto.WalletDto; // <-- Import
-import com.cts.wallet.dto.WalletTransactionDto; // <-- ADD
+
+import com.cts.wallet.dto.RideTransactionInternalDto;
+import com.cts.wallet.dto.WalletDto;
 import com.cts.wallet.dto.internal.RidePaymentRequestDto;
 import com.cts.wallet.service.WalletService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-// <-- ADD
-import org.springframework.web.bind.annotation.*; // <-- Import
-import java.util.List;
-/**
- * Controller for SECURE, INTERNAL, service-to-service communication.
- * Secured *only* by Layer 1 (GatewayKeyFilter).
- */
+import org.springframework.web.bind.annotation.*;
+
 @RestController
 @RequestMapping("/api/v1/internal/wallets")
 @Slf4j
@@ -48,7 +44,7 @@ public class WalletInternalController {
     }
 
     @GetMapping("/transactions/latest")
-    public ResponseEntity<List<WalletTransactionDto>> getLatestTransactions() {
+    public ResponseEntity<RideTransactionInternalDto> getLatestTransactions() {
         log.info("Internal request: getLatestTransactions");
         return ResponseEntity.ok(walletService.getLatest5Transactions());
     }

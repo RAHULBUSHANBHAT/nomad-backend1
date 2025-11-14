@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cts.driver.client.BookingClient;
 import com.cts.driver.client.UserClient;
 import com.cts.driver.dto.DriverProfileDto;
+import com.cts.driver.dto.DriverStatsDto;
 import com.cts.driver.dto.RideOfferDto;
 import com.cts.driver.dto.UpdateDriverStatusDto;
 import com.cts.driver.dto.UpdateVerificationDto;
@@ -165,25 +166,15 @@ public class DriverServiceImpl {
     
     @Transactional(readOnly = true)
     public Page<DriverProfileDto> getAllDrivers(Pageable pageable, String filterType, String searchContent) {
-        
-        // Case 1: Filtering
+        System.out.println(filterType + " " + searchContent);
+        Page<Driver> drivers = null;
         if (filterType != null && searchContent != null && !searchContent.isEmpty()) {
-            Driver driver = null;
-            if ("AADHAR".equalsIgnoreCase(filterType)) {
-                driver = driverRepository.findByAadharNumber(searchContent).orElse(null);
-            } else if ("LICENSE".equalsIgnoreCase(filterType)) {
-                driver = driverRepository.findByLicenseNumber(searchContent).orElse(null);
-            }
-
-            if (driver == null) return Page.empty();
-
-            UserDto user = userClient.getUserById(driver.getUserId());
-            DriverProfileDto dto = driverMapper.toDriverProfileDto(driver, user);
-            return new PageImpl<>(Collections.singletonList(dto), pageable, 1);
-        }
-
-        // Case 2: No Filter
-        return driverRepository.findAll(pageable).map(driver -> {
+            if ("AADHAR".equalsIgnoreCase(filterType))
+                drivers = driverRepository.findByAadharNumberContains(searchContent, pageable);
+            else if ("LICENSE".equalsIgnoreCase(filterType))
+                drivers = driverRepository.findByLicenseNumberContains(searchContent, pageable);
+        } else drivers = driverRepository.findAll(pageable);
+        return drivers.map(driver -> {
             UserDto user = userClient.getUserById(driver.getUserId());
             return driverMapper.toDriverProfileDto(driver, user);
         });
@@ -212,8 +203,8 @@ public class DriverServiceImpl {
         return driverMapper.toDriverProfileDto(savedDriver, user);
     }
     
-    public long getDriverCount() {
-        return driverRepository.count();
+    public DriverStatsDto getDriversAndVehiclesCount() {
+        return new DriverStatsDto(driverRepository.count(), vehicleRepository.count());
     }
     
     @Transactional

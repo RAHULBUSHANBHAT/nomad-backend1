@@ -70,8 +70,8 @@ public class DriverController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<DriverProfileDto>> getAllDrivers(
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable,
-            @RequestParam(required = false) String filterType,   // "AADHAR" or "LICENSE"
-            @RequestParam(required = false) String searchContent // The value
+            @RequestParam(required = false) String filterType,
+            @RequestParam(required = false) String searchContent
     ) {
         return ResponseEntity.ok(driverService.getAllDrivers(pageable, filterType, searchContent));
     }

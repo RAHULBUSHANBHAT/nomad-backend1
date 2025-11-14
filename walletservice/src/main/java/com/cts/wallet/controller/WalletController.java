@@ -85,10 +85,9 @@ public class WalletController {
     @GetMapping("/admin/wallets/wallet-transactions")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<WalletTransactionDto>> getAllWalletTransactions(
-            @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable,
-            @Valid @RequestParam(required = false) TransactionFilterDto filters) {
-        log.info("Admin request: Fetching all transactions");
-        return ResponseEntity.ok(walletService.getAllWalletTransactions(filters, pageable));
+            @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable) {
+        log.info("Admin request: Fetching all wallet transactions");
+        return ResponseEntity.ok(walletService.getAllWalletTransactions(pageable));
     }
 
     @GetMapping("/admin/wallets/ride-transactions")
@@ -96,7 +95,7 @@ public class WalletController {
     public ResponseEntity<Page<RideTransaction>> getAllRideTransactions(
             @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable,
             @Valid @RequestParam(required = false) TransactionFilterDto filters) {
-        log.info("Admin request: Fetching all transactions");
+        log.info("Admin request: Fetching all rider transactions");
         return ResponseEntity.ok(walletService.getAllRideTransactions(filters, pageable));
     }
     

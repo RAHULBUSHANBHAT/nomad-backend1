@@ -1,6 +1,7 @@
 package com.cts.user.client;
 
 import com.cts.user.config.FeignClientConfig;
+import com.cts.user.dto.DriverStatsDto;
 import com.cts.user.dto.UpdateDriverStatusDto;
 
 import org.springframework.cloud.openfeign.FeignClient;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 public interface DriverClient {
 
     @GetMapping("/count")
-    long getDriverCount();
+    DriverStatsDto getDriversAndVehiclesCount();
 
     @PutMapping("/me/status/{userId}")
     void updateMyLocation(@PathVariable("userId") String userId, UpdateDriverStatusDto statusDto);

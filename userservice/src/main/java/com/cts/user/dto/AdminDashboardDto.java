@@ -7,8 +7,10 @@ import java.util.List;
 @Data
 @Builder
 public class AdminDashboardDto {
+    private double companyWalletBalance;
     private long totalRiders;
     private long totalDrivers;
-    private double companyWalletBalance;
-    private List<TransactionDto> latestTransactions; // We need a TransactionDto
+    private long totalVehicles;
+    private long successfulTrips;
+    private List<?> latestTransactions;
 }
