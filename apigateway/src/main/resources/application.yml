@@ -273,7 +273,7 @@ spring:
                 status: 403 # Forbidden
 
 server:
-  port: 3030
+  port: 8090
 
 eureka:
   client:
