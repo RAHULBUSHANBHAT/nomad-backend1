@@ -27,11 +27,7 @@ private static final Logger log = LoggerFactory.getLogger(KafkaConsumerConfig.cl
     @PostMapping("/{userId}/availability")
     public ResponseEntity<Boolean> setAvailability(@PathVariable String userId, @RequestParam boolean available) {
         log.info("Internal request: Setting availability for user {} to {}", userId, available);
-        
-        UpdateDriverStatusDto dto = new UpdateDriverStatusDto();
-        dto.setAvailable(available);
-        
-        return ResponseEntity.ok(driverService.updateDriverStatus(userId, dto));
+        return ResponseEntity.ok(driverService.updateDriverStatus(userId, available));
     }
 
     @GetMapping("/count")

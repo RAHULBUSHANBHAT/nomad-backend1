@@ -79,6 +79,15 @@ public class DriverServiceImpl {
         driverRepository.save(driver);
         return driver.isAvailable();
     }
+
+    @Transactional
+    public boolean updateDriverStatus(String userId, boolean available) {
+        log.info("Updating status for driver ID: {}", userId);
+        Driver driver = findDriverByUserId(userId);
+        driver.setAvailable(available);
+        driverRepository.save(driver);
+        return driver.isAvailable();
+    }
     
     @Transactional(readOnly = true)
     public List<RideOfferDto> getPendingOffers(String userId) {
