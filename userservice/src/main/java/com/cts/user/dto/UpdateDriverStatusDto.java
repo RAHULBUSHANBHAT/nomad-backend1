@@ -9,4 +9,5 @@ import lombok.Data;
 public class UpdateDriverStatusDto {
     @NotBlank(message = "Current city is required to go online")
     private String currentCity;
+    private boolean isAvailable;
 }

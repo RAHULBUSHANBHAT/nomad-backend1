@@ -201,7 +201,7 @@ public class UserServiceImpl {
         user.setLastName(updateUserDto.getLastName());
         user.setCity(updateUserDto.getCity());
         user.setState(updateUserDto.getState());
-        if(user.getRole().equals(Role.DRIVER)) driverClient.updateMyLocation(user.getId(), new UpdateDriverStatusDto(updateUserDto.getCity()));
+        if(user.getRole().equals(Role.DRIVER)) driverClient.updateMyLocation(user.getId(), new UpdateDriverStatusDto(updateUserDto.getCity(), true));
 
         User updatedUser = userRepository.save(user);
         return userMapper.toUserDto(updatedUser);

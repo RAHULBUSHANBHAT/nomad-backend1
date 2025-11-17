@@ -75,6 +75,7 @@ public class DriverServiceImpl {
         log.info("Updating current city for driver ID: {}", userId);
         Driver driver = findDriverByUserId(userId);
         driver.setAvailable(dto.isAvailable());
+        driver.setCurrentCity(dto.getCurrentCity());
         driverRepository.save(driver);
         return driver.isAvailable();
     }
