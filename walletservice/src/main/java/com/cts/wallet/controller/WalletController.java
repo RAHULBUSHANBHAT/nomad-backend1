@@ -2,7 +2,10 @@ package com.cts.wallet.controller;
 
 import com.cts.wallet.dto.DepositRequestDto; // <-- ADD
 import jakarta.validation.Valid; // <-- ADD
+
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping; // <-- ADD
 import org.springframework.web.bind.annotation.RequestBody; // <-- ADD
@@ -12,10 +15,13 @@ import com.cts.wallet.dto.WalletTransactionDto;
 import com.cts.wallet.dto.TransactionFilterDto;
 import com.cts.wallet.dto.WalletDto;
 import com.cts.wallet.dto.WithdrawRequestDto;
-import com.cts.wallet.dto.internal.RidePaymentRequestDto;
 import com.cts.wallet.model.RideTransaction;
 import com.cts.wallet.service.WalletService;
 import lombok.extern.slf4j.Slf4j;
+
+import java.beans.PropertyEditorSupport;
+import java.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +39,53 @@ public class WalletController {
 
     @Autowired
     private WalletService walletService;
+    
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+
+        binder.registerCustomEditor(String.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) {
+                // If the incoming string is "null", "NULL", or empty, 
+                // treat it as a proper null object.
+                if (text == null || text.isEmpty() || "null".equalsIgnoreCase(text)) {
+                    setValue(null);
+                } else {
+                    setValue(text);
+                }
+            }
+        });
+        
+        binder.registerCustomEditor(Double.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) {
+                if (text == null || text.isEmpty() || "null".equalsIgnoreCase(text)) {
+                    setValue(null); // Set the property to a real null object
+                } else {
+                    try {
+                        setValue(Double.parseDouble(text));
+                    } catch (NumberFormatException e) {
+                        setValue(null); // Or throw an exception
+                    }
+                }
+            }
+        });
+
+        binder.registerCustomEditor(LocalDate.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) {
+                if (text == null || text.isEmpty() || "null".equalsIgnoreCase(text)) {
+                    setValue(null); // Set the property to a real null object
+                } else {
+                    try {
+                        setValue(LocalDate.parse(text));
+                    } catch (Exception e) {
+                        setValue(null); // Or throw an exception
+                    }
+                }
+            }
+        });
+    }
     
     private String getUserId(Authentication authentication) {
         return (String) authentication.getDetails();
@@ -94,7 +147,7 @@ public class WalletController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<RideTransaction>> getAllRideTransactions(
             @PageableDefault(size = 50, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable,
-            @Valid @RequestParam(required = false) TransactionFilterDto filters) {
+            @Valid TransactionFilterDto filters) {
         log.info("Admin request: Fetching all rider transactions");
         return ResponseEntity.ok(walletService.getAllRideTransactions(filters, pageable));
     }

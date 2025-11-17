@@ -29,9 +29,7 @@ import com.cts.wallet.repository.TransactionSpecification;
 import com.cts.wallet.repository.WalletRepository;
 import com.cts.wallet.repository.WalletTransactionRepository;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class WalletService {
@@ -74,18 +72,46 @@ public class WalletService {
 
     @Transactional(readOnly = true)
     public Page<RideTransaction> getAllRideTransactions(TransactionFilterDto filters, Pageable pageable) {
-        if(filters == null) return rideTransactionRepository.findAll(pageable);
         
-        Specification<RideTransaction> spec = Specification
-                .where(specBuilder.hasBookingId(filters.getSearchTerm()))
-                .and(specBuilder.hasPaymentMode(filters.getPaymentMode()))
-                .and(specBuilder.hasFare(filters.getFareFilter(), filters.getFareValue()))
-                .and(specBuilder.hasDate(filters.getDateFilter()));
-                
+        // 1. Create a base specification that does nothing (selects all).
+        Specification<RideTransaction> spec = Specification.where(null);
+
+        // 2. Check if the 'filters' object is null.
+        if (filters == null) {
+            log.debug("Filters DTO is NULL. Returning all transactions.");
+            return rideTransactionRepository.findAll(spec, pageable);
+        }
+
+        // 3. Conditionally add filters one by one ONLY if they have a real value.
+        
+        // Check for Search Term (Booking ID)
+        if (filters.getSearchTerm() != null && !filters.getSearchTerm().isEmpty()) {
+            log.debug("Adding filter: Booking ID contains '{}'", filters.getSearchTerm());
+            spec = spec.and(specBuilder.hasBookingId(filters.getSearchTerm()));
+        }
+
+        // Check for Payment Mode
+        if (filters.getPaymentMode() != null && !filters.getPaymentMode().isEmpty() && !filters.getPaymentMode().equals("ALL")) {
+            log.debug("Adding filter: Payment Mode is '{}'", filters.getPaymentMode());
+            spec = spec.and(specBuilder.hasPaymentMode(filters.getPaymentMode()));
+        }
+
+        // Check for Date
+        if (filters.getDateFilter() != null) {
+            log.debug("Adding filter: Date is '{}'", filters.getDateFilter());
+            spec = spec.and(specBuilder.hasDate(filters.getDateFilter()));
+        }
+
+        // Check for Fare (both filter and value must be present)
+        if (filters.getFareFilter() != null && !filters.getFareFilter().equals("ALL") && filters.getFareValue() != null) {
+            log.debug("Adding filter: Fare {} {}", filters.getFareFilter(), filters.getFareValue());
+            spec = spec.and(specBuilder.hasFare(filters.getFareFilter(), filters.getFareValue()));
+        }
+        
+        // 4. Execute the final, combined query.
+        log.debug("Executing final specification query.");
         return rideTransactionRepository.findAll(spec, pageable);
     }
-
-    // --- 2. CORE LOGIC (PAYMENTS) ---
 
     @Transactional
     public void processRidePayment(RidePaymentRequestDto dto) {
@@ -214,7 +240,7 @@ public class WalletService {
         rt.setRiderName(dto.getRiderName()); // Fill details from DTO
         rt.setRiderPhone(dto.getRiderPhone());
 
-        rt.setPaymentMode(mode == "WALLET" ? PaymentMode.WALLET : PaymentMode.CASH);
+        rt.setPaymentMode("WALLET".equals(mode) ? PaymentMode.WALLET : PaymentMode.CASH);
         
         rt.setDriverId(dto.getDriverUserId());
         rt.setDriverName(dto.getDriverName());

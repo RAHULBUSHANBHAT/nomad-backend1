@@ -66,9 +66,8 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserDto> updateCurrentUser(Authentication authentication, @Valid @RequestBody UpdateUserDto updateUserDto) {
         String userId = (String) authentication.getDetails();
-        String userRole = getUserRole(authentication);
         log.info("Updating profile for /me, authenticated user ID: {}", userId);
-        UserDto updatedUser = userService.updateUser(userId, updateUserDto, userRole);
+        UserDto updatedUser = userService.updateUser(userId, updateUserDto);
         return ResponseEntity.ok(updatedUser);
     }
 

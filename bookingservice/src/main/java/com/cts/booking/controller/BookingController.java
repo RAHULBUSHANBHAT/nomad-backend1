@@ -94,7 +94,7 @@ public class BookingController {
     @PreAuthorize("hasRole('RIDER')")
     public ResponseEntity<Page<BookingDto>> getRiderBookingHistory(
             Authentication authentication,
-            @Valid @RequestParam(required = false) BookingFiltersDto bookingFiltersDto,
+            @Valid BookingFiltersDto bookingFiltersDto,
             @PageableDefault(size = 20, sort = "requestTime", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("Rider {} fetching booking history", getUserId(authentication));
         return ResponseEntity.ok(bookingService.getBookingsForRider(getUserId(authentication), bookingFiltersDto, pageable));
@@ -122,7 +122,7 @@ public class BookingController {
     @PreAuthorize("hasRole('DRIVER')")
     public ResponseEntity<Page<BookingDto>> getMyDriverBookingHistory(
             Authentication authentication,
-            @Valid @RequestParam(required = false) BookingFiltersDto bookingFiltersDto,
+            @Valid BookingFiltersDto bookingFiltersDto,
             @PageableDefault(size = 20, sort = "requestTime", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("Driver {} fetching booking history", getUserId(authentication));
         return ResponseEntity.ok(bookingService.getBookingsForDriver(getUserId(authentication), bookingFiltersDto, pageable));

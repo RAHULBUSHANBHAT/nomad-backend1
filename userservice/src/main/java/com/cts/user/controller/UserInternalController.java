@@ -43,7 +43,7 @@ public class UserInternalController {
             @Valid @RequestBody UpdateUserDto updateUserDto) {
         
         log.info("Internal request: Updating user by ID: {}", id);
-        UserDto updatedUser = userService.updateUser(id, updateUserDto, "");
+        UserDto updatedUser = userService.updateUser(id, updateUserDto);
         return ResponseEntity.ok(updatedUser);
     }
     

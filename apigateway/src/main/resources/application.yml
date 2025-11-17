@@ -55,17 +55,6 @@ spring:
               args:
                 allowedRoles: [ADMIN]
 
-        # --- NEW ROUTE FOR ADMIN FARES ---
-        - id: ADMIN-FARES-SERVICE
-          uri: lb://BOOKING-SERVICE
-          predicates:
-            - Path=/api/v1/admin/fares/**
-          filters:
-            - JwtAuthenticationFilter
-            - name: RoleAuthorizationFilter
-              args:
-                allowedRoles: [ADMIN]
-
         # --- NEW ROUTE FOR ADMIN TRANSACTIONS ---
         - id: ADMIN-TRANSACTIONS-SERVICE
           uri: lb://WALLET-SERVICE
@@ -98,35 +87,14 @@ spring:
             - name: RoleAuthorizationFilter
               args:
                 allowedRoles: [RIDER] # Only the rider can pay
-
-        # --- NEW ROUTES FOR INDIVIDUAL VERIFICATION ---
-        - id: ADMIN-DRIVER-APPROVE-PAN
-          uri: lb://DRIVER-SERVICE
-          predicates:
-            - Path=/api/v1/admin/drivers/{id}/approve/pan
-          filters:
-            - JwtAuthenticationFilter
-            - name: RoleAuthorizationFilter
-              args:
-                allowedRoles: [ADMIN]
-        - id: ADMIN-DRIVER-APPROVE-LICENSE
-          uri: lb://DRIVER-SERVICE
-          predicates:
-            - Path=/api/v1/admin/drivers/{id}/approve/license
-          filters:
-            - JwtAuthenticationFilter
-            - name: RoleAuthorizationFilter
-              args:
-                allowedRoles: [ADMIN]
-          # No filters = public
-
+        
         # # ============================================
         # # ADMIN ROUTES (Protected - ADMIN role only) DO IT FROM HERE
         # # ============================================
         - id: ADMIN-USER-SERVICE
           uri: lb://USER-SERVICE
           predicates:
-            - Path=Path=/api/v1/users/admin/**
+            - Path=/api/v1/users/admin/**
           filters:
             - JwtAuthenticationFilter
             - name: RoleAuthorizationFilter
@@ -197,16 +165,6 @@ spring:
             - name: RoleAuthorizationFilter
               args:
                 allowedRoles: [DRIVER]
-
-        - id: ADMIN-DRIVER-SERVICE
-          uri: lb://DRIVER-SERVICE
-          predicates:
-            - Path=/api/v1/drivers/admin/**
-          filters:
-            - JwtAuthenticationFilter
-            - name: RoleAuthorizationFilter
-              args:
-                allowedRoles: [ADMIN]
 
         - id: DRIVER-BOOKING-SERVICE
           uri: lb://BOOKING-SERVICE

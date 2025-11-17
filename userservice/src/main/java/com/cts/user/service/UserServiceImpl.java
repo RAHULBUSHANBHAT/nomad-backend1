@@ -1,21 +1,13 @@
 package com.cts.user.service;
 
-import org.springframework.data.domain.PageImpl;
-import java.util.Collections;
-import java.util.Optional;
-
-import java.util.List; // <-- ADD
-
 import org.springframework.beans.factory.annotation.Autowired; // <-- ADD
 import org.springframework.beans.factory.annotation.Value; // <-- ADD
 import org.springframework.data.domain.Page; // <-- ADD
-
 import org.springframework.data.domain.Pageable; // <-- ADD
 import org.springframework.kafka.core.KafkaTemplate; // <-- ADD
 import org.springframework.security.crypto.password.PasswordEncoder; // <-- ADD
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.cts.user.client.DriverClient;
 import com.cts.user.client.WalletClient;
 import com.cts.user.dto.AdminDashboardDto;
@@ -34,7 +26,6 @@ import com.cts.user.mapper.UserMapper;
 import com.cts.user.model.Role;
 import com.cts.user.model.User;
 import com.cts.user.repository.UserRepository;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -88,6 +79,7 @@ public class UserServiceImpl {
                 savedUser.getEmail(),
                 savedUser.getPassword(), // Send the HASHED password
                 savedUser.getRole().name(),
+                savedUser.getStatus().name(),
                 "USER_CREATED"
         );
 
@@ -116,7 +108,23 @@ public class UserServiceImpl {
         User savedUser = userRepository.save(user);
         
         // We should also produce a "USER_UPDATED" event
-        // kafkaTemplate.send(...) 
+        // kafkaTemplate.send(...)
+        UserEventDto eventDto = new UserEventDto(
+                savedUser.getId(),
+                null, null, null,
+                savedUser.getStatus().name(),
+                "USER_STATUS_UPDATED"
+        );
+
+        try {
+            log.debug("Sending Kafka event: id={}, type={}, status={}", 
+                     eventDto.getUserId(), eventDto.getEventType(), eventDto.getStatus());
+            kafkaTemplate.send(userEventsTopic, savedUser.getId(), eventDto);
+            log.info("Sent 'USER_STATUS_UPDATED' event to Kafka topic: {}", userEventsTopic);
+        } catch (Exception e) {
+            log.error("Failed to send 'USER_STATUS_UPDATED' event to Kafka. Rolling back transaction.", e);
+            throw new RuntimeException("Failed to send user creation event, registration rolled back.", e);
+        }
         
         return userMapper.toUserDto(savedUser);
     }
@@ -197,7 +205,7 @@ public class UserServiceImpl {
     }
 
     @Transactional
-    public UserDto updateUser(String userId, UpdateUserDto updateUserDto, String userRole) {
+    public UserDto updateUser(String userId, UpdateUserDto updateUserDto) {
         log.info("Updating profile for user ID: {}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
@@ -206,7 +214,7 @@ public class UserServiceImpl {
         user.setLastName(updateUserDto.getLastName());
         user.setCity(updateUserDto.getCity());
         user.setState(updateUserDto.getState());
-        if(userRole.equals("DRIVER")) driverClient.updateMyLocation(user.getId(), new UpdateDriverStatusDto(updateUserDto.getCity()));
+        if(user.getRole().equals(Role.DRIVER)) driverClient.updateMyLocation(user.getId(), new UpdateDriverStatusDto(updateUserDto.getCity()));
 
         User updatedUser = userRepository.save(user);
         return userMapper.toUserDto(updatedUser);

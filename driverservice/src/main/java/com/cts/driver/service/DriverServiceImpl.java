@@ -1,16 +1,12 @@
 package com.cts.driver.service;
-import java.util.Collections;
-import java.util.List;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.cts.driver.client.BookingClient;
 import com.cts.driver.client.UserClient;
 import com.cts.driver.dto.DriverProfileDto;
@@ -28,14 +24,11 @@ import com.cts.driver.model.Driver;
 import com.cts.driver.model.RideOffer;
 import com.cts.driver.model.RideOfferStatus;
 import com.cts.driver.model.Vehicle;
-import com.cts.driver.model.VehicleType;
 import com.cts.driver.model.VerificationType;
 import com.cts.driver.repository.DriverRepository;
 import com.cts.driver.repository.RideOfferRepository;
 import com.cts.driver.repository.VehicleRepository;
-
 import lombok.extern.slf4j.Slf4j;
-
 
 @Service
 @Slf4j

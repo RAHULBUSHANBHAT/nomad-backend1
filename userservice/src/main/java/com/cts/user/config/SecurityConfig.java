@@ -5,7 +5,6 @@ import com.cts.user.security.JwtHeaderAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -41,12 +40,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // Disable CSRF
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless
             .authorizeHttpRequests(authz -> authz
-                // 1. The registration endpoint is public.
-                
-                
-                // 2. All other endpoints (public, admin, AND internal)
-                //    must be authenticated.
-                .anyRequest().permitAll()
+                .requestMatchers("/api/v1/users/register").permitAll()
+                .anyRequest().authenticated()
             )
             // 3. We apply our filters IN ORDER.
             

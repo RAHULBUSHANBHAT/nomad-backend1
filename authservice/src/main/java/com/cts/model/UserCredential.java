@@ -31,4 +31,7 @@ public class UserCredential {
 
     @Column(name = "role", nullable = false)
     private String role;
+
+    @Column(name = "status", nullable = false)
+    private Status status;
 }

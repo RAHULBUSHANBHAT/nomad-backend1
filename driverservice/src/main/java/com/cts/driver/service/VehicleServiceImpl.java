@@ -40,8 +40,8 @@ public class VehicleServiceImpl {
     }
 
     @Transactional(readOnly = true)
-    public List<VehicleDto> getVehiclesByDriverUserId(String driverId) {
-        Driver driver = driverRepository.findByUserId(driverId)
+    public List<VehicleDto> getVehiclesByDriverUserId(String driverUserId) {
+        Driver driver = driverRepository.findByUserId(driverUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Driver profile not found"));
                 
         return driver.getVehicles().stream()

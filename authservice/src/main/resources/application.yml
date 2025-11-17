@@ -29,7 +29,6 @@ spring:
       bootstrap-servers: localhost:9092
       group-id: auth-service-group-2 # Consumer group for this service
       auto-offset-reset: latest
-      enable.auto.commit: true
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
 

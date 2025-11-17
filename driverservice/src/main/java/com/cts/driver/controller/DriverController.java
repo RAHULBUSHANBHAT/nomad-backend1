@@ -4,7 +4,6 @@ import com.cts.driver.dto.AcceptOfferRequestDto;
 import com.cts.driver.dto.DriverProfileDto;
 import com.cts.driver.dto.RideOfferDto;
 import com.cts.driver.dto.UpdateVerificationDto;
-import com.cts.driver.model.Driver;
 import com.cts.driver.model.VerificationType;
 import com.cts.driver.service.DriverServiceImpl;
 import jakarta.validation.Valid;

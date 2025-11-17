@@ -51,9 +51,6 @@ public class KafkaConsumerConfig {
                 "com.cts.dto.kafka," +      // Auth service package
                 "com.cts.user.dto.kafka");  // User service package
         
-        // Add type mappings to help with deserialization
-        props.put(JsonDeserializer.TYPE_MAPPINGS, 
-                "com.cts.user.dto.kafka.UserEventDto:com.cts.dto.kafka.UserEventDto");
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         
         // Disable auto-commit to prevent missing messages on errors
@@ -62,7 +59,6 @@ public class KafkaConsumerConfig {
         // Add these to help with debugging
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(JsonDeserializer.REMOVE_TYPE_INFO_HEADERS, false);
-        props.put(JsonDeserializer.TYPE_MAPPINGS, "userevent:com.cts.dto.kafka.UserEventDto");
         
         return new DefaultKafkaConsumerFactory<>(props);
     }

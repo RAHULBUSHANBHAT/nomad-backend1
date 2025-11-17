@@ -1,17 +1,11 @@
 package com.cts.rider.service;
 
-import com.cts.rider.client.BookingClient;
 import com.cts.rider.client.UserClient;
-import com.cts.rider.client.WalletClient;
 import com.cts.rider.dto.RiderAccountDto;
 import com.cts.rider.dto.UpdateRiderDto;
-import com.cts.rider.dto.client.BookingDto;
 import com.cts.rider.dto.client.UserDto;
-import com.cts.rider.dto.client.WalletDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication; // <-- Import
 import org.springframework.stereotype.Service;
 
@@ -21,10 +15,6 @@ public class RiderServiceImpl {
 
     @Autowired
     private UserClient userClient;
-    @Autowired
-    private WalletClient walletClient;
-    // @Autowired
-    private BookingClient bookingClient; // Un-commented
 
     /**
      * Gets all account info for the "My Account" page.
@@ -37,7 +27,6 @@ public class RiderServiceImpl {
 
         // Make the INTERNAL Feign calls
         UserDto user = userClient.getUserByIdInternal(userId);
-        WalletDto wallet = walletClient.getWalletByUserIdInternal(userId);
 
         // Combine them into a single response
         return RiderAccountDto.builder()
@@ -49,8 +38,6 @@ public class RiderServiceImpl {
                 .city(user.getCity())
                 .state(user.getState())
                 .userRating(user.getRating())
-                .currentBalance(wallet.getBalance())
-                .walletStatus(wallet.getStatus())
                 .build();
     }
 
@@ -62,15 +49,5 @@ public class RiderServiceImpl {
         String userId = (String) authentication.getDetails();
         // Call the new INTERNAL update endpoint
         return userClient.updateUserInternal(userId, updateDto);
-    }
-    
-    /**
-     * Gets the rider's paginated booking history.
-     */
-    public Page<BookingDto> getMyBookingHistory(Authentication authentication, Pageable pageable) {
-        log.debug("Fetching booking history for current rider...");
-        String userId = (String) authentication.getDetails();
-        // Call the new INTERNAL history endpoint
-        return bookingClient.getMyBookingHistoryInternal(userId, pageable);
     }
 }

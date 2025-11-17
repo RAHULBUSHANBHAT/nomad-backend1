@@ -17,4 +17,5 @@ public class UserEventDto {
     private String password; // The HASHED password
     private String role;
     private String eventType; // e.g., "USER_CREATED"
+    private String status;
 }

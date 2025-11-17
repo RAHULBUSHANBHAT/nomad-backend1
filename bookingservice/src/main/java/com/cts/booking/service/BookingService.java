@@ -349,11 +349,15 @@ public class BookingService {
          return bookingMapper.toDto(saved);
     }
 
-    // --- 8. VIEW METHODS (Filters) ---
     @Transactional(readOnly = true)
     public Page<BookingDto> getBookingsForRider(String riderUserId, BookingFiltersDto bookingFiltersDto, Pageable pageable) {
         String filterType = bookingFiltersDto != null ? bookingFiltersDto.getFilterType() : "";
         String searchTerm = bookingFiltersDto != null ? bookingFiltersDto.getSearchTerm() : "";
+
+        if (filterType == null || filterType.isEmpty() || searchTerm == null || searchTerm.isEmpty()) {
+            // This is now your default case
+            return bookingRepository.findByRiderUserId(riderUserId, pageable).map(bookingMapper::toDto);
+        }
         
         return switch (filterType.toLowerCase()) {
             case "status" ->
@@ -378,6 +382,11 @@ public class BookingService {
     public Page<BookingDto> getBookingsForDriver(String driverUserId, BookingFiltersDto bookingFiltersDto, Pageable pageable) {
         String filterType = bookingFiltersDto != null ? bookingFiltersDto.getFilterType() : "";
         String searchTerm = bookingFiltersDto != null ? bookingFiltersDto.getSearchTerm() : "";
+
+        if (filterType == null || filterType.isEmpty() || searchTerm == null || searchTerm.isEmpty()) {
+            // This is now your default case
+            return bookingRepository.findByDriverUserId(driverUserId, pageable).map(bookingMapper::toDto);
+        }
         
         return switch (filterType.toLowerCase()) {
             case "status" ->

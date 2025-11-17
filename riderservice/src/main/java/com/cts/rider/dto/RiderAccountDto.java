@@ -16,8 +16,4 @@ public class RiderAccountDto {
     private String city;
     private String state;
     private float userRating;
-    
-    // From WalletDto
-    private double currentBalance;
-    private String walletStatus;
 }

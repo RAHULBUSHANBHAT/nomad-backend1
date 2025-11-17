@@ -3,6 +3,7 @@ package com.cts.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -33,6 +34,18 @@ public class GlobalExceptionHandler {
         );
         // Return 400 Bad Request
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles suspended account login attempts.
+     * * --- THIS IS THE FIXED METHOD ---
+     */
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<String> handleAccountSuspendedExceptions(DisabledException ex) {
+        // A DisabledException is a simple exception, not a validation exception.
+        // It does not have getBindingResult().
+        // We return the exception message directly with a 403 Forbidden status.
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     /**

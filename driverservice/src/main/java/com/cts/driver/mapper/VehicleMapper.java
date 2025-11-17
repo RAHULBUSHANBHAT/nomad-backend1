@@ -14,8 +14,6 @@ public class VehicleMapper {
         dto.setRegistrationNumber(entity.getRegistrationNumber());
         dto.setModel(entity.getModel());
         dto.setPucExpiry(entity.getPucExpiry());
-        dto.setInsurancePolicyNumber(entity.getInsurancePolicyNumber());
-        dto.setInsuranceExpiry(entity.getInsuranceExpiry());
         dto.setPucNumber(entity.getPucNumber());
         dto.setPucExpiry(entity.getPucExpiry());
         dto.setPucVerified(entity.isPucVerified());

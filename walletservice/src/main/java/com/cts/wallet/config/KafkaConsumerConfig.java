@@ -71,7 +71,7 @@ public class KafkaConsumerConfig {
         DefaultErrorHandler errorHandler = new DefaultErrorHandler((record, exception) -> {
             log.error("--- KAFKA DESERIALIZATION FAIL (RECOVERED & SKIPPING) --- Topic: {}, Offset: {}. Reason: {}",
                     record.topic(), record.offset(), exception.getMessage());
-        }, new FixedBackOff(0L, 0L)); // No retries
+        }, new FixedBackOff(1000L, 3L));
 
         errorHandler.addNotRetryableExceptions(org.springframework.kafka.support.serializer.DeserializationException.class);
         factory.setCommonErrorHandler(errorHandler);
