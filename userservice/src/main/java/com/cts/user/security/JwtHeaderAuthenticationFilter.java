@@ -16,11 +16,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * LAYER 2 SECURITY FILTER
- * Reads the X-User-* headers (trusted from the gateway) and
- * creates a Spring SecurityContext for @PreAuthorize (Layer 3) to use.
- */
 @Component
 @Slf4j
 public class JwtHeaderAuthenticationFilter extends OncePerRequestFilter {
@@ -41,14 +36,13 @@ public class JwtHeaderAuthenticationFilter extends OncePerRequestFilter {
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(springRole));
 
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    email, // The "principal" (username)
-                    null,  // No credentials
+                    email,
+                    null,
                     authorities
             );
             
-            auth.setDetails(userId); // Store the User ID in the 'details'
+            auth.setDetails(userId);
 
-            // Set this user as "authenticated" for this request
             SecurityContextHolder.getContext().setAuthentication(auth);
             log.trace("Created SecurityContext for user {} with role {}", email, springRole);
         } else {

@@ -35,7 +35,7 @@ public class UserEventConsumer {
             }
         } catch (IllegalArgumentException e) {
             log.error("Invalid status string received in event: '{}'. Skipping message.", eventDto.getStatus());
-            return; // Acknowledge and skip this "poison pill" message
+            return;
         }
         
         if ("USER_CREATED".equals(eventDto.getEventType())) {
@@ -57,7 +57,7 @@ public class UserEventConsumer {
             UserCredential credential = new UserCredential(
                     eventDto.getUserId(),
                     eventDto.getEmail(),
-                    eventDto.getPassword(), // This should be the hashed password from user-service
+                    eventDto.getPassword(),
                     eventDto.getRole(),
                     newStatus
             );
@@ -67,7 +67,7 @@ public class UserEventConsumer {
                 log.info("Successfully created UserCredential. ID: {}, Email: {}", saved.getUserId(), saved.getEmail());
             } catch (Exception e) {
                 log.error("Database error saving UserCredential: {}", e.getMessage(), e);
-                throw e; // Re-throw so the container can handle it (retry)
+                throw e;
             }
 
         } else if ("USER_STATUS_UPDATED".equals(eventDto.getEventType())) {
@@ -78,8 +78,6 @@ public class UserEventConsumer {
                 return;
             }
 
-            // --- THIS IS THE FIX ---
-            // 2. Find the existing credential
             UserCredential existingCredential = repository.findById(eventDto.getUserId())
                 .orElse(null);
 
@@ -88,7 +86,6 @@ public class UserEventConsumer {
                 return;
             }
 
-            // 3. Update only the field that changed
             log.debug("Updating status for userId={} from {} to {}", 
                     eventDto.getUserId(), existingCredential.getStatus(), newStatus);
             

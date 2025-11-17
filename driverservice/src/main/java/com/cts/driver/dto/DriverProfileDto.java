@@ -7,7 +7,6 @@ import java.time.LocalDate;
 @Data
 @Builder
 public class DriverProfileDto {
-    // --- From User (via Feign) ---
     private String userId;
     private String email;
     private String phoneNumber;
@@ -17,7 +16,6 @@ public class DriverProfileDto {
     private String state;
     private float userRating;
     private String userStatus;
-    // --- From Driver (local DB) ---
     private String driverId;
     private boolean available;
     private String currentCity;

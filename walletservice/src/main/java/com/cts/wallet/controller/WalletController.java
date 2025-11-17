@@ -1,16 +1,15 @@
 package com.cts.wallet.controller;
 
-import com.cts.wallet.dto.DepositRequestDto; // <-- ADD
-import jakarta.validation.Valid; // <-- ADD
+import com.cts.wallet.dto.DepositRequestDto;
+import jakarta.validation.Valid;
 
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping; // <-- ADD
-import org.springframework.web.bind.annotation.RequestBody; // <-- ADD
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import com.cts.wallet.dto.WalletTransactionDto;
 import com.cts.wallet.dto.TransactionFilterDto;
 import com.cts.wallet.dto.WalletDto;
@@ -33,7 +32,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1") // We map at the root to handle both /wallets and /admin
+@RequestMapping("/api/v1")
 @Slf4j
 public class WalletController {
 
@@ -46,8 +45,6 @@ public class WalletController {
         binder.registerCustomEditor(String.class, new PropertyEditorSupport() {
             @Override
             public void setAsText(String text) {
-                // If the incoming string is "null", "NULL", or empty, 
-                // treat it as a proper null object.
                 if (text == null || text.isEmpty() || "null".equalsIgnoreCase(text)) {
                     setValue(null);
                 } else {
@@ -60,12 +57,12 @@ public class WalletController {
             @Override
             public void setAsText(String text) {
                 if (text == null || text.isEmpty() || "null".equalsIgnoreCase(text)) {
-                    setValue(null); // Set the property to a real null object
+                    setValue(null);
                 } else {
                     try {
                         setValue(Double.parseDouble(text));
                     } catch (NumberFormatException e) {
-                        setValue(null); // Or throw an exception
+                        setValue(null);
                     }
                 }
             }
@@ -75,12 +72,12 @@ public class WalletController {
             @Override
             public void setAsText(String text) {
                 if (text == null || text.isEmpty() || "null".equalsIgnoreCase(text)) {
-                    setValue(null); // Set the property to a real null object
+                    setValue(null);
                 } else {
                     try {
                         setValue(LocalDate.parse(text));
                     } catch (Exception e) {
-                        setValue(null); // Or throw an exception
+                        setValue(null);
                     }
                 }
             }
@@ -91,10 +88,8 @@ public class WalletController {
         return (String) authentication.getDetails();
     }
 
-    // --- USER-FACING ENDPOINTS ---
-    
     @GetMapping("/wallets/me")
-    @PreAuthorize("isAuthenticated()") // Any authenticated user can see their wallet
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<WalletDto> getMyWallet(Authentication authentication) {
         log.info("Fetching wallet for user: {}", authentication.getName());
         return ResponseEntity.ok(walletService.getWalletByUserId(getUserId(authentication)));
@@ -132,8 +127,6 @@ public class WalletController {
         WalletDto updatedWallet = walletService.withdrawFunds(userId, withdrawRequest.getAmount());
         return ResponseEntity.ok(updatedWallet);
     }
-
-    // --- ADMIN ENDPOINTS (as requested) ---
 
     @GetMapping("/admin/wallets/wallet-transactions")
     @PreAuthorize("hasRole('ADMIN')")

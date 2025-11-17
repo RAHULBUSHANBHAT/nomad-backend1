@@ -29,13 +29,9 @@ public class JwtUtil {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    /**
-     * Generates a new JWT for a given user.
-     */
     public String generateToken(UserCredential user) {
         Map<String, Object> claims = new HashMap<>();
         
-        // These are the custom claims our API Gateway *expects* to find
         claims.put("email", user.getEmail());
         claims.put("role", user.getRole());
 
@@ -44,7 +40,6 @@ public class JwtUtil {
 
         return Jwts.builder()
                 .setClaims(claims)
-                // The "subject" of the token will be the user's unique ID
                 .setSubject(user.getUserId()) 
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)

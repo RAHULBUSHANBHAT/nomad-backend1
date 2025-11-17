@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// This is an "FYI" event for other services (analytics, etc.)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

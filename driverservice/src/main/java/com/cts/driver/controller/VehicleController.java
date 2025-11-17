@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1") // Nested under the driver
-@PreAuthorize("hasRole('DRIVER')") // All methods require DRIVER role
+@RequestMapping("/api/v1")
+@PreAuthorize("hasRole('DRIVER')")
 public class VehicleController {
 
     private static final Logger log = LoggerFactory.getLogger(KafkaConsumerConfig.class);
@@ -43,7 +43,7 @@ public class VehicleController {
     }
     
     @DeleteMapping("/drivers/me/vehicles/{vehicleId}")
-    @PreAuthorize("@securityService.isVehicleOwner(authentication, #vehicleId)") // Layer 3 data check
+    @PreAuthorize("@securityService.isVehicleOwner(authentication, #vehicleId)")
     public ResponseEntity<?> deleteVehicle(Authentication authentication, 
                                              @PathVariable String vehicleId) {
         log.info("Driver {} deleting vehicle {}", getUserId(authentication), vehicleId);
@@ -52,7 +52,7 @@ public class VehicleController {
     }
 
     @PutMapping("/drivers/me/vehicles/{vehicleId}")
-    @PreAuthorize("@securityService.isVehicleOwner(authentication, #vehicleId)") // Layer 3
+    @PreAuthorize("@securityService.isVehicleOwner(authentication, #vehicleId)")
     public ResponseEntity<VehicleDto> updateVehicle(Authentication authentication, 
                                                     @PathVariable String vehicleId,
                                                     @Valid @RequestBody VehicleDto vehicleDto) {

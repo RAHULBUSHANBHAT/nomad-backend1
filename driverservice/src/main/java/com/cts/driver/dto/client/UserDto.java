@@ -3,9 +3,8 @@ package com.cts.driver.dto.client;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
-// DTO to capture response from user-service
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true) // Be resilient to fields we don't care about
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDto {
     private String id;
     private String email;

@@ -1,7 +1,7 @@
 package com.cts.booking.model;
 
 import com.cts.booking.dto.CreateBookingRequestDto;
-import com.cts.booking.dto.client.UserDto; // Import UserDto
+import com.cts.booking.dto.client.UserDto;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,7 +20,6 @@ public class Booking {
     @Column(nullable = false, updatable = false)
     private String riderUserId;
     
-    // --- NEW RIDER SNAPSHOT FIELDS ---
     @Column(updatable = false)
     private String riderName;
     
@@ -28,28 +27,22 @@ public class Booking {
     private String riderPhoneNumber;
 
     @Column(nullable = true)
-    private String driverUserId; // Nullable until a driver accepts
+    private String driverUserId;
 
-    // --- NEW DRIVER SNAPSHOT FIELDS ---
     @Column
     private String driverName;
     
     @Column
     private String driverPhoneNumber;
     
-    /** The driver's OVERALL rating at the time of booking. */
     @Column
     private float driverProfileRating; 
     
-    /** The driver's total trips at the time of booking. */
     @Column
     private long totalTrips;
     
-    /** The driver's join date. */
     @Column
     private LocalDateTime driverCreatedAt;
-    
-    // --- END NEW FIELDS ---
     
     @Column(updatable = false)
     private String vehicleId; 
@@ -58,7 +51,6 @@ public class Booking {
     @Column(nullable = false)
     private BookingStatus status;
 
-    // Location Info
     @Column(nullable = false)
     private String pickupLocationName; 
     @Column(nullable = false)
@@ -76,13 +68,11 @@ public class Booking {
     @Column(nullable = false)
     private String vehicleType;
 
-    // Financial Info
     @Column
     private double fare; 
     @Column
     private String paymentStatus;
 
-    // Timestamps
     @Column(nullable = false, updatable = false)
     private LocalDateTime requestTime;
     @Column
@@ -92,7 +82,6 @@ public class Booking {
     @Column
     private LocalDateTime completedTime; 
     
-    /** The rating GIVEN BY THE RIDER for THIS RIDE (1-5). */
     @Column
     private Integer driverRating; 
 
@@ -103,14 +92,9 @@ public class Booking {
         paymentStatus = "UNPAID";
     }
 
-    /**
-     * Helper constructor to create a new PENDING booking from a request.
-     * NOW INCLUDES RIDER SNAPSHOT.
-     */
     public Booking(String riderUserId, UserDto rider, CreateBookingRequestDto dto, String city, double fare) {
         this.riderUserId = riderUserId;
         
-        // Populate rider snapshot
         this.riderName = rider.getFirstName() + " " + rider.getLastName();
         this.riderPhoneNumber = rider.getPhoneNumber();
         

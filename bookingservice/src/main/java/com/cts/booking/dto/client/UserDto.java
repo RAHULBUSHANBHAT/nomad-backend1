@@ -11,7 +11,7 @@ public class UserDto {
     private String phoneNumber;
     private String firstName;
     private String lastName;
-    private float rating; // Important for the UI
+    private float rating;
     private String city;
     private LocalDateTime createdAt;
 }

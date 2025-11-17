@@ -25,7 +25,7 @@ public class User {
     private String phoneNumber;
 
     @Column(name = "password", nullable = false)
-    private String password; // Hashed
+    private String password;
 
     @Column(name = "first_name")
     private String firstName;

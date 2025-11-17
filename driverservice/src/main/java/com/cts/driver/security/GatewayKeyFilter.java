@@ -13,15 +13,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.cts.driver.config.KafkaConsumerConfig;
 import java.io.IOException;
 
-/**
- * LAYER 1 SECURITY FILTER
- * Verifies the X-Gateway-Key to block non-gateway requests.
- */
 @Component
-// @Slf4j
 public class GatewayKeyFilter extends OncePerRequestFilter {
 
-        private static final Logger log = LoggerFactory.getLogger(KafkaConsumerConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(KafkaConsumerConfig.class);
 
     @Value("${gateway.secret-key}")
     private String gatewaySecret;

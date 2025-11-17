@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.cts.driver.dto.client.BookingAssignmentDto;
 
-// This client calls the BOOKING-SERVICE's internal endpoint
 @FeignClient(name = "BOOKING-SERVICE", path = "/api/v1/internal/bookings")
 public interface BookingClient {
 

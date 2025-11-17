@@ -16,19 +16,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * Admin controller for managing Fares and viewing all Bookings.
- */
 @RestController
 @RequestMapping("/api/v1/admin")
-@PreAuthorize("hasRole('ADMIN')") // All endpoints are for Admins
+@PreAuthorize("hasRole('ADMIN')")
 @Slf4j
 public class BookingAdminController {
 
     @Autowired
     private BookingService bookingService;
-
-    // --- "FARE BOARD" ENDPOINTS ---
 
     @GetMapping("/fares")
     public ResponseEntity<List<FareConfig>> getAllFares() {
@@ -54,10 +49,6 @@ public class BookingAdminController {
         bookingService.deleteFare(id);
         return ResponseEntity.ok().build();
     }
-    
-    // We would add PUT /fares/{id} and DELETE /fares/{id} here
-
-    // --- BOOKING LEDGER ENDPOINT ---21
     
     @GetMapping("/bookings/all")
     public ResponseEntity<Page<BookingDto>> getAllBookings(

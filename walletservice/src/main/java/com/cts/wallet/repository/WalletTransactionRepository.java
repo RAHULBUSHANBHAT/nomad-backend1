@@ -10,6 +10,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WalletTransactionRepository extends JpaRepository<WalletTransaction, String>, JpaSpecificationExecutor<WalletTransaction> {
     
-    // For the user's "My Transactions" page
     Page<WalletTransaction> findByWalletId(String walletId, Pageable pageable);
 }

@@ -16,7 +16,7 @@ public class TransactionFilterDto {
 
     @Pattern(regexp = "^(ALL|WALLET|CASH)$",
              message = "Invalid payment mode")
-    private String paymentMode; // This field is correct
+    private String paymentMode;
 
     @Pattern(regexp = "^(ALL|EQUAL|GREATER|LESS)$", 
              message = "Invalid fare filter. Must be 'equal', 'greater', or 'less'")
@@ -31,7 +31,6 @@ public class TransactionFilterDto {
     @AssertTrue(message = "fareValue must be provided when a fareFilter (other than 'ALL') is set")
     private boolean isFareFilterValid() {
         if (this.fareFilter != null && !this.fareFilter.equals("ALL")) {
-            // If filter is EQUAL, GREATER, or LESS, a value is required
             return this.fareValue != null;
         }
         return true;
@@ -40,7 +39,6 @@ public class TransactionFilterDto {
     @AssertTrue(message = "fareFilter must be provided if fareValue is set")
     private boolean isFareValueValid() {
         if (this.fareValue != null) {
-            // If a value is given, a filter (even "ALL") must be present
             return this.fareFilter != null;
         }
         return true;

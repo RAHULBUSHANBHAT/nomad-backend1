@@ -11,10 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
-/**
- * LAYER 1 SECURITY FILTER
- * Verifies the X-Gateway-Key to block non-gateway requests.
- */
 @Component
 @Slf4j
 public class GatewayKeyFilter extends OncePerRequestFilter {

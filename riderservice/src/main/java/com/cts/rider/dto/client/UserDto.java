@@ -3,7 +3,6 @@ package com.cts.rider.dto.client;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
-// DTO to capture response from user-service
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDto {

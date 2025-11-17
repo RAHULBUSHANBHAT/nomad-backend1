@@ -38,25 +38,20 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         
-        // Key deserializer is simple String
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         
-        // For the value, wrap JsonDeserializer in ErrorHandlingDeserializer
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName());
         
-        // Tell JsonDeserializer what type to deserialize into and trust both package paths
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, UserEventDto.class.getName());
         props.put(JsonDeserializer.TRUSTED_PACKAGES, 
-                "com.cts.dto.kafka," +      // Auth service package
-                "com.cts.user.dto.kafka");  // User service package
+                "com.cts.dto.kafka," +
+                "com.cts.user.dto.kafka");
         
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         
-        // Disable auto-commit to prevent missing messages on errors
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         
-        // Add these to help with debugging
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(JsonDeserializer.REMOVE_TYPE_INFO_HEADERS, false);
         
@@ -68,25 +63,21 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, UserEventDto> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         
-        // Add error handler with detailed exception logging
         DefaultErrorHandler errorHandler = new DefaultErrorHandler((record, exception) -> {
             log.error("Failed to process Kafka record. Topic: {}, Partition: {}, Offset: {}", 
                 record.topic(), record.partition(), record.offset(), exception);
             
-            // Get the root cause for more details
             Throwable rootCause = exception;
             while (rootCause.getCause() != null) {
                 rootCause = rootCause.getCause();
             }
             log.error("Root cause: {}", rootCause.getMessage());
             
-            // If it's a deserialization error, try to log the raw value
             if (record.value() != null) {
                 log.error("Raw record value: {}", record.value());
             }
         });
         
-        // Don't retry on specific exceptions
         errorHandler.addNotRetryableExceptions(org.springframework.kafka.support.serializer.DeserializationException.class);
         factory.setCommonErrorHandler(errorHandler);
         

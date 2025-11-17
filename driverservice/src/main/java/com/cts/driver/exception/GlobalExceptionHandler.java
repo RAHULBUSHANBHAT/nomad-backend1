@@ -33,7 +33,6 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<String> handleIllegalStateException(IllegalStateException ex) {
-        // For business logic errors, e.g., "driver not verified"
         log.warn("IllegalStateException: {}", ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
@@ -41,7 +40,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(FeignException.class)
     public ResponseEntity<String> handleFeignException(FeignException ex) {
         log.error("Feign client error: {}", ex.getMessage());
-        // Don't leak internal details, just say the service is unavailable
         return new ResponseEntity<>("Error communicating with a downstream service.", HttpStatus.SERVICE_UNAVAILABLE);
     }
 

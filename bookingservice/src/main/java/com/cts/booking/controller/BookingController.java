@@ -5,7 +5,7 @@ import com.cts.booking.dto.BookingFiltersDto;
 import com.cts.booking.dto.CreateBookingRequestDto;
 import com.cts.booking.dto.EstimateFareRequestDto;
 import com.cts.booking.dto.EstimatedFareResponseDto;
-import com.cts.booking.dto.AddRatingRequestDto; // <-- ADD
+import com.cts.booking.dto.AddRatingRequestDto;
 import com.cts.booking.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.GrantedAuthority;
 
 @RestController
-@RequestMapping("/api/v1") // Mapped at root to handle all paths
+@RequestMapping("/api/v1")
 @Slf4j
 public class BookingController {
 
@@ -33,7 +33,6 @@ public class BookingController {
         return (String) authentication.getDetails();
     }
     
-    // Gets the role *without* the "ROLE_" prefix
     private String getUserRole(Authentication authentication) {
         return authentication.getAuthorities().stream()
                 .findFirst()
@@ -42,8 +41,6 @@ public class BookingController {
                 .orElse("");
     }
 
-    // --- RIDER ENDPOINTS ---
-    
     @PostMapping("/bookings/request")
     @PreAuthorize("hasRole('RIDER')")
     public ResponseEntity<BookingDto> requestRide(Authentication authentication, 
@@ -100,10 +97,6 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getBookingsForRider(getUserId(authentication), bookingFiltersDto, pageable));
     }
 
-    /**
-     * --- NEW "FEEDBACK" ENDPOINT ---
-     * Can only be left by the RIDER after a ride.
-     */
     @PostMapping("/bookings/{bookingId}/feedback")
     @PreAuthorize("hasRole('RIDER') and @securityService.isRiderOnBooking(authentication, #bookingId)")
     public ResponseEntity<Void> addFeedback(Authentication authentication,
@@ -116,8 +109,6 @@ public class BookingController {
         return ResponseEntity.ok().build();
     }
 
-    // --- DRIVER ENDPOINTS ---
-    
     @GetMapping("/driver/bookings/me/history")
     @PreAuthorize("hasRole('DRIVER')")
     public ResponseEntity<Page<BookingDto>> getMyDriverBookingHistory(
@@ -128,8 +119,6 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getBookingsForDriver(getUserId(authentication), bookingFiltersDto, pageable));
     }
 
-    // Note: The "accept" endpoint is on the DRIVER-SERVICE, not here.
-    
     @PostMapping("/bookings/{id}/complete")
     @PreAuthorize("hasRole('DRIVER') and @securityService.isDriverOnBooking(authentication, #bookingId)")
     public ResponseEntity<BookingDto> completeRide(Authentication authentication, 
@@ -171,17 +160,13 @@ public class BookingController {
         return ResponseEntity.ok(cancelledBooking);
     }
 
-    /**
-     * --- NEW "CANCEL RIDE" ENDPOINT ---
-     * Can be cancelled by the Rider, the Driver (if assigned), or an Admin.
-     */
     @PostMapping("/bookings/{id}/cancel")
     @PreAuthorize("hasRole('ADMIN') or @securityService.isRiderOnBooking(authentication, #id) or @securityService.isDriverOnBooking(authentication, #Id)")
     public ResponseEntity<BookingDto> cancelBooking(Authentication authentication, 
                                                     @PathVariable("id") String id) {
         
         String userId = getUserId(authentication);
-        String userRole = getUserRole(authentication); // "RIDER", "DRIVER", "ADMIN"
+        String userRole = getUserRole(authentication);
         log.info("User {} ({}) is cancelling booking {}", userId, userRole, id);
         
         BookingDto cancelledBooking = bookingService.cancelBooking(id, userId, userRole);

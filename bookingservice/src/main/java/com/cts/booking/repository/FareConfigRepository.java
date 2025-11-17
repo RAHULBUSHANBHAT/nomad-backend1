@@ -9,6 +9,5 @@ import java.util.Optional;
 @Repository
 public interface FareConfigRepository extends JpaRepository<FareConfig, String> {
     
-    // This is the core of the fare calculation
     Optional<FareConfig> findByCityAndVehicleType(String city, String vehicleType);
 }

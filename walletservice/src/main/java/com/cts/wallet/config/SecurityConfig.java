@@ -15,62 +15,45 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // Layer 3
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
-    private JwtHeaderAuthenticationFilter jwtHeaderAuthenticationFilter; // Layer 2
+    private JwtHeaderAuthenticationFilter jwtHeaderAuthenticationFilter;
     @Autowired
-    private GatewayKeyFilter gatewayKeyFilter; // Layer 1
+    private GatewayKeyFilter gatewayKeyFilter;
 
-    /**
-     * --- "INTERNAL" SECURITY CHAIN ---
-     * @Order(1) - Runs FIRST.
-     * Applies ONLY to "/api/v1/internal/**"
-     */
     @Bean
     @Order(1)
     public SecurityFilterChain internalApiSecurity(HttpSecurity http) throws Exception {
         http
-            .securityMatcher("/api/v1/internal/**") // Only for internal paths
+            .securityMatcher("/api/v1/internal/**")
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             
             .authorizeHttpRequests(authz -> authz
-                // Trust the GatewayKeyFilter *is* the authentication.
                 .anyRequest().permitAll() 
             )
-            // Apply ONLY Layer 1 (The Gateway Key)
             .addFilterBefore(gatewayKeyFilter, UsernamePasswordAuthenticationFilter.class);
-            // We do NOT add Layer 2, because this call has no user context.
         
         return http.build();
     }
 
-    /**
-     * --- "PUBLIC" SECURITY CHAIN ---
-     * @Order(2) - Runs SECOND.
-     * Applies to all other paths (e.g., "/api/v1/wallets/**")
-     */
     @Bean
     @Order(2)
     public SecurityFilterChain publicApiSecurity(HttpSecurity http) throws Exception {
         http
-            // This chain applies to all other requests
             .csrf(csrf -> csrf.disable())
             
-            // This is the CORRECTED line
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
             .authorizeHttpRequests(authz -> authz
-                // All other paths must be authenticated by a user
                 .anyRequest().authenticated()
             )
-            // Apply BOTH Layer 1 AND Layer 2
             .addFilterBefore(gatewayKeyFilter, UsernamePasswordAuthenticationFilter.class) // Layer 1
             .addFilterAfter(jwtHeaderAuthenticationFilter, GatewayKeyFilter.class); // Layer 2
             

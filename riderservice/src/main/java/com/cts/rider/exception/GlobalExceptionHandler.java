@@ -15,14 +15,9 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    /**
-     * This is the most important handler for a BFF.
-     * It catches errors from downstream services (user-service, etc.)
-     */
     @ExceptionHandler(FeignException.class)
     public ResponseEntity<String> handleFeignException(FeignException ex) {
         log.error("Feign client error: Status {} - {}", ex.status(), ex.getMessage());
-        // Return the same status code that the downstream service returned
         HttpStatus status = HttpStatus.resolve(ex.status());
         if (status == null) {
             status = HttpStatus.SERVICE_UNAVAILABLE;

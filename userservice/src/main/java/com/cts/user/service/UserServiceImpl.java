@@ -1,11 +1,11 @@
 package com.cts.user.service;
 
-import org.springframework.beans.factory.annotation.Autowired; // <-- ADD
-import org.springframework.beans.factory.annotation.Value; // <-- ADD
-import org.springframework.data.domain.Page; // <-- ADD
-import org.springframework.data.domain.Pageable; // <-- ADD
-import org.springframework.kafka.core.KafkaTemplate; // <-- ADD
-import org.springframework.security.crypto.password.PasswordEncoder; // <-- ADD
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.cts.user.client.DriverClient;
@@ -43,21 +43,20 @@ public class UserServiceImpl {
     private UserMapper userMapper;
 
     @Autowired
-    private PasswordEncoder passwordEncoder; // For hashing
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private KafkaTemplate<String, UserEventDto> kafkaTemplate; // For producing
+    private KafkaTemplate<String, UserEventDto> kafkaTemplate;
 
     @Value("${app.kafka.topics.user-events}")
     private String userEventsTopic;
 
-    @Value("${app.company-wallet-user-id}") // <-- We need this ID from wallet's yml
+    @Value("${app.company-wallet-user-id}")
     private String companyWalletUserId;
     @Transactional
     public UserDto registerUser(RegisterUserDto registerUserDto) {
         log.info("Attempting to register new user: {}", registerUserDto.getEmail());
 
-        // 1. Check for duplicates
         if (userRepository.existsByEmail(registerUserDto.getEmail())) {
             throw new DuplicateResourceException("Email already in use: " + registerUserDto.getEmail());
         }
@@ -65,25 +64,21 @@ public class UserServiceImpl {
             throw new DuplicateResourceException("Phone number already in use: " + registerUserDto.getPhoneNumber());
         }
 
-        // 2. Map DTO to Entity and hash password
         User user = userMapper.toUser(registerUserDto);
         user.setPassword(passwordEncoder.encode(registerUserDto.getPassword()));
 
-        // 3. Save the new user to our local MySQL database
         User savedUser = userRepository.save(user);
         log.info("User saved to database with ID: {}", savedUser.getId());
 
-        // 4. Create the Kafka event DTO
         UserEventDto eventDto = new UserEventDto(
                 savedUser.getId(),
                 savedUser.getEmail(),
-                savedUser.getPassword(), // Send the HASHED password
+                savedUser.getPassword(),
                 savedUser.getRole().name(),
                 savedUser.getStatus().name(),
                 "USER_CREATED"
         );
 
-        // 5. Send the event to the Kafka topic
         try {
             log.debug("Sending Kafka event: id={}, type={}, email={}, role={}", 
                      eventDto.getUserId(), eventDto.getEventType(), 
@@ -104,11 +99,9 @@ public class UserServiceImpl {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
         
-        user.setStatus(dto.getStatus()); // Set to ACTIVE or SUSPENDED
+        user.setStatus(dto.getStatus());
         User savedUser = userRepository.save(user);
         
-        // We should also produce a "USER_UPDATED" event
-        // kafkaTemplate.send(...)
         UserEventDto eventDto = new UserEventDto(
                 savedUser.getId(),
                 null, null, null,
@@ -132,15 +125,12 @@ public class UserServiceImpl {
     public AdminDashboardDto getAdminDashboardStats() {
         log.info("Fetching admin dashboard stats...");
 
-        // 1. Fetch counts (these are fast, run in parallel)
         long totalRiders = userRepository.countByRole(Role.RIDER);
         DriverStatsDto driverStatsDto = driverClient.getDriversAndVehiclesCount();
 
-        // 2. Fetch financials (these are fast, run in parallel)
-        WalletDto companyWallet = walletClient.getWalletByUserIdInternal(companyWalletUserId); // Feign call
-        RideTransactionInternalDto transactionsDetails = walletClient.getTransactionsDetails(); // Feign call
+        WalletDto companyWallet = walletClient.getWalletByUserIdInternal(companyWalletUserId);
+        RideTransactionInternalDto transactionsDetails = walletClient.getTransactionsDetails();
 
-        // 3. Build and return the DTO
         return AdminDashboardDto.builder()
                 .totalRiders(totalRiders)
                 .totalDrivers(driverStatsDto.getDriverCount())
@@ -170,9 +160,7 @@ public class UserServiceImpl {
         return userMapper.toUserDto(user);
     }
 
-   public Page<UserDto> getAllRiders(Pageable pageable, String filterType, String searchContent) {
-        
-        // --- FILTER LOGIC ---
+    public Page<UserDto> getAllRiders(Pageable pageable, String filterType, String searchContent) {
         Page<User> users = null;
         if (filterType != null && searchContent != null && !searchContent.isEmpty()) {
             log.info("Admin searching Riders. Type: {}, Content: {}", filterType, searchContent);
@@ -182,7 +170,6 @@ public class UserServiceImpl {
                 users = userRepository.findByRoleAndPhoneNumberContains(Role.RIDER, searchContent, pageable);
         } else users = userRepository.findByRole(Role.RIDER, pageable);
 
-        // --- DEFAULT: NO FILTER (Fetch All Riders) ---
         log.info("Admin request: Fetching all RIDERs, page {} of size {}", pageable.getPageNumber(), pageable.getPageSize());
         return users.map(user -> {
             return userMapper.toUserDto(user);
@@ -219,13 +206,13 @@ public class UserServiceImpl {
         User updatedUser = userRepository.save(user);
         return userMapper.toUserDto(updatedUser);
     }
+
     @Transactional
     public void addRating(String userId, int newRating) {
         log.info("Adding new rating of {} for user ID: {}", newRating, userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
         
-        // This is a robust average calculation
         int oldTotalRatings = user.getTotalRatings();
         float oldSum = user.getRating() * oldTotalRatings;
         
@@ -239,13 +226,8 @@ public class UserServiceImpl {
         log.info("User {} new average rating is: {}", userId, user.getRating());
     }
     
-    /**
-     * Admin-only function to get all users with pagination.
-     * As you requested.
-     */
     public Page<UserDto> getAllUsers(Pageable pageable) {
         log.info("Admin request: Fetching all users, page {} of size {}", pageable.getPageNumber(), pageable.getPageSize());
-        // Spring Data JPA handles the pagination query automatically
         return userRepository.findAll(pageable)
                 .map(userMapper::toUserDto);
     }

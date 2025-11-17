@@ -19,10 +19,6 @@ public class AdminDashboardController {
     @Autowired
     private UserServiceImpl userService;
 
-    /**
-     * --- THIS IS THE NEW "Admin Dashboard" ENDPOINT ---
-     * Orchestrates calls to multiple services to get stats.
-     */
     @GetMapping
     public ResponseEntity<AdminDashboardDto> getDashboardStats() {
         log.info("Admin request: getDashboardStats");

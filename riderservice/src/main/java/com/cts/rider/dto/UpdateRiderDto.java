@@ -3,7 +3,6 @@ package com.cts.rider.dto;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-// DTO to send to user-service for updates
 @Data
 public class UpdateRiderDto {
     @Size(min = 1, max = 50)

@@ -15,10 +15,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * LAYER 2 SECURITY FILTER
- * Reads the X-User-* headers and creates a SecurityContext. (Identical to other services)
- */
 @Component
 @Slf4j
 public class JwtHeaderAuthenticationFilter extends OncePerRequestFilter {
@@ -40,7 +36,7 @@ public class JwtHeaderAuthenticationFilter extends OncePerRequestFilter {
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     email, null, authorities);
             
-            auth.setDetails(userId); // Store the User ID
+            auth.setDetails(userId);
 
             SecurityContextHolder.getContext().setAuthentication(auth);
             log.trace("Created SecurityContext for user {} with role {}", email, springRole);

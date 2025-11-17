@@ -5,10 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-/**
- * This is the "Fare Board" entity you asked for.
- * Matches your "location_pricing" mock data.
- */
 @Data
 @Entity
 @NoArgsConstructor
@@ -27,11 +23,11 @@ public class FareConfig {
     private String state;
 
     @Column(nullable = false)
-    private String vehicleType; // e.g., "SEDAN", "SUV"
+    private String vehicleType;
 
     @Column(nullable = false)
-    private double baseFare; // e.g., 50.0
+    private double baseFare;
 
     @Column(name = "price_per_km", nullable = false)
-    private double ratePerKm; // e.g., 12.0
+    private double ratePerKm;
 }

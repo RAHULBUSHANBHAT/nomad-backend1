@@ -1,6 +1,5 @@
 package com.cts.wallet.dto.kafka;
 
-// Import Lombok annotations
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -8,13 +7,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserEventDto {
 
-    private String eventType; // e.g., "USER_CREATED"
+    private String eventType;
     private String userId;
     private String email;
-    private String password; // This should be the HASHED password
-    private String role;     // e.g., "RIDER", "DRIVER"
-
-    // --- Manually Generated Getters and Setters ---
+    private String password;
+    private String role;
 
     public String getEventType() {
         return eventType;

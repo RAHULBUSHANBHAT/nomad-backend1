@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import java.time.LocalDateTime;
 
-// DTO to capture response from booking-service
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BookingDto {

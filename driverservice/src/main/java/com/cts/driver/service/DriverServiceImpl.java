@@ -16,7 +16,7 @@ import com.cts.driver.dto.UpdateDriverStatusDto;
 import com.cts.driver.dto.UpdateVerificationDto;
 import com.cts.driver.dto.client.BookingAssignmentDto;
 import com.cts.driver.dto.client.UserDto;
-import com.cts.driver.exception.OfferException; // Required for single result page
+import com.cts.driver.exception.OfferException;
 import com.cts.driver.exception.ResourceNotFoundException;
 import com.cts.driver.mapper.DriverMapper;
 import com.cts.driver.mapper.RideOfferMapper;
@@ -61,7 +61,6 @@ public class DriverServiceImpl {
         driver.setLicenseNumber(dto.getLicenseNumber());
         driver.setDriverLicenseExpiry(dto.getDriverLicenseExpiry());
         
-        // Reset verification status, pending admin approval
         driver.setAadhaarVerified(false);
         driver.setPanVerified(false);
         driver.setDriverLicenseVerified(false);
@@ -91,7 +90,6 @@ public class DriverServiceImpl {
                 .collect(Collectors.toList());
     }
 
-    // --- ACCEPT OFFER (WITH VEHICLE SELECTION) ---
     @Transactional
     public void acceptOffer(String userId, String offerId, String selectedVehicleId) {
         log.info("Driver (User ID: {}) attempting to accept offer ID: {} with Vehicle: {}", userId, offerId, selectedVehicleId);
@@ -100,7 +98,6 @@ public class DriverServiceImpl {
         RideOffer offer = rideOfferRepository.findById(offerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Offer not found or expired."));
 
-        // 1. Security & Status Checks
         if (!offer.getDriverId().equals(driver.getId())) {
             throw new OfferException("This offer does not belong to you.");
         }
@@ -108,45 +105,35 @@ public class DriverServiceImpl {
             throw new OfferException("Offer is no longer available.");
         }
 
-        // 2. Validate Selected Vehicle
         Vehicle selectedVehicle = vehicleRepository.findById(selectedVehicleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found."));
 
-        // Ownership check
         boolean ownsVehicle = driver.getVehicles().stream()
                 .anyMatch(v -> v.getId().equals(selectedVehicleId));
         if (!ownsVehicle) {
             throw new OfferException("You do not own this vehicle.");
         }
 
-        // Verification check
         if (!selectedVehicle.isVerified()) {
             throw new OfferException("Vehicle is not verified.");
         }
 
-        // Category check: FIX for Enum vs String error
-        // Convert Enum to String using .name()
         if (!selectedVehicle.getVehicleType().name().equalsIgnoreCase(offer.getVehicleCategory())) {
             throw new OfferException("Vehicle Type Mismatch. Required: " + offer.getVehicleCategory());
         }
         
-        // 3. Claim the offer
         offer.setStatus(RideOfferStatus.ACCEPTED);
         rideOfferRepository.save(offer);
 
-        // 4. Reject others
         List<RideOffer> otherOffers = rideOfferRepository.findByBookingIdAndStatus(offer.getBookingId(), RideOfferStatus.PENDING);
         otherOffers.forEach(o -> o.setStatus(RideOfferStatus.REJECTED));
         rideOfferRepository.saveAll(otherOffers);
 
-        // 5. Set Driver Unavailable
         driver.setAvailable(false);
         driverRepository.save(driver);
 
-        // 6. Call Booking Service
         try {
             log.info("Assigning booking {} to driver {}", offer.getBookingId(), driver.getUserId());
-            // Using the now valid BookingAssignmentDto constructor
             bookingClient.assignBooking(offer.getBookingId(), 
                 new BookingAssignmentDto(driver.getUserId(), selectedVehicleId));
         } catch (Exception e) {
@@ -154,8 +141,6 @@ public class DriverServiceImpl {
             throw new RuntimeException("Failed to confirm booking.", e);
         }
     }
-    
-    // --- Admin Methods ---
     
     @Transactional(readOnly = true)
     public Page<DriverProfileDto> getAllDrivers(Pageable pageable, String filterType, String searchContent) {

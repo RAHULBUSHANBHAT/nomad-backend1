@@ -28,5 +28,5 @@ public class RegisterUserDto {
     private String lastName;
 
     @NotNull(message = "Role is required (RIDER or DRIVER)")
-    private Role role; // RIDER, DRIVER
+    private Role role;
 }

@@ -23,11 +23,11 @@ public class RidePaymentRequestDto {
     private double baseFare;
     private double distanceFare;
     private double taxes;
-    private double commissionFee; // Matches Wallet Service
-    private double totalFare;     // Matches Wallet Service
+    private double commissionFee;
+    private double totalFare;
     
     private String pickupAddress;
     private String dropoffAddress;
     
-    private String paymentMode; // "WALLET" or "CASH"
+    private String paymentMode;
 }

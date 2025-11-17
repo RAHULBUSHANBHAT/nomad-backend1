@@ -24,8 +24,8 @@ public class WalletMapper {
                 .id(tx.getId())
                 .amount(tx.getAmount())
                 .type(tx.getType())
-                .walletId(tx.getWalletId())       // <-- Corrected: Accessing walletId
-                .referenceId(tx.getReferenceId()) // <-- Added: Shows Booking ID in UI
+                .walletId(tx.getWalletId())
+                .referenceId(tx.getReferenceId())
                 .timestamp(tx.getTimestamp())
                 .build();
     }

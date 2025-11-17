@@ -5,10 +5,6 @@ import com.cts.user.model.Status;
 import lombok.Data;
 import java.time.LocalDateTime;
 
-/**
- * A "safe" DTO to return from API endpoints.
- * Notice it does NOT contain the password.
- */
 @Data
 public class UserDto {
     private String id;

@@ -36,11 +36,11 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
-            log.info("🔐 JWT Filter START - Method: {}, Path: {}", request.getMethod(), request.getPath());
+            log.info("JWT Filter START - Method: {}, Path: {}", request.getMethod(), request.getPath());
             String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                log.error("❌ JWT Filter FAILED - Missing or invalid Authorization header");
+                log.error("JWT Filter FAILED - Missing or invalid Authorization header");
                 return onError(exchange, "Missing Authorization header", HttpStatus.UNAUTHORIZED);
             }
 
@@ -60,7 +60,7 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                 Date expiration = claims.getExpiration();
 
                 if (expiration.before(new Date())) {
-                    log.error("❌ JWT Filter FAILED - Token is EXPIRED");
+                    log.error("JWT Filter FAILED - Token is EXPIRED");
                     return onError(exchange, "Token expired", HttpStatus.UNAUTHORIZED);
                 }
 
@@ -68,25 +68,24 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                         .header("X-User-Id", userId)
                         .header("X-User-Email", email) 
                         .header("X-User-Role", role)
-                        // This is the new, critical line
                         .header("X-Gateway-Key", gatewaySecret)
                         .build();
 
-                log.info("✅ JWT Filter SUCCESS - Forwarding with headers:");
-                log.info("   X-User-Id: {}", userId);
-                log.info("   X-User-Role: {}", role);
+                log.info("JWT Filter SUCCESS - Forwarding with headers:");
+                log.info("X-User-Id: {}", userId);
+                log.info("X-User-Role: {}", role);
 
                 return chain.filter(exchange.mutate().request(modifiedRequest).build());
 
             } catch (Exception e) {
-                log.error("❌ JWT Filter FAILED - Unexpected error: {}", e.getMessage());
+                log.error("JWT Filter FAILED - Unexpected error: {}", e.getMessage());
                 return onError(exchange, "Invalid token", HttpStatus.UNAUTHORIZED);
             }
         };
     }
 
     private Mono<Void> onError(ServerWebExchange exchange, String error, HttpStatus status) {
-        log.error("🚫 Returning error response: {} - {}", status, error);
+        log.error("Returning error response: {} - {}", status, error);
         exchange.getResponse().setStatusCode(status);
         exchange.getResponse().getHeaders().add("X-Error-Reason", error);
         return exchange.getResponse().setComplete();

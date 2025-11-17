@@ -34,10 +34,6 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.consumer.group-id}")
     private String groupId;
 
-    // --- We will create two separate factories, one for each DTO type ---
-    // This is the cleanest way to handle multiple DTOs.
-
-    // --- Factory 1: For UserEventDto ---
 
     @Bean
     public ConsumerFactory<String, UserEventDto> userEventConsumerFactory() {
@@ -45,16 +41,13 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         
-        // Use ErrorHandlingDeserializer
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         
-        // Configure the inner JsonDeserializer
         props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName());
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, UserEventDto.class.getName()); // Local class
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.cts.driver.dto.kafka, com.cts.user.dto.kafka"); // Trust both
         
-        // Add the critical Type Mapping
         props.put(JsonDeserializer.TYPE_MAPPINGS, "com.cts.user.dto.kafka.UserEventDto:com.cts.driver.dto.kafka.UserEventDto");
         
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
@@ -69,7 +62,6 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(userEventConsumerFactory());
         factory.getContainerProperties().setAckMode(AckMode.MANUAL_IMMEDIATE);
         
-        // Use the robust error handler
         DefaultErrorHandler errorHandler = new DefaultErrorHandler((record, exception) -> {
             log.error("Failed to process UserEvent. Topic: {}, Offset: {}. Reason: {}", 
                 record.topic(), record.offset(), exception.getMessage());
@@ -79,8 +71,6 @@ public class KafkaConsumerConfig {
         factory.setCommonErrorHandler(errorHandler);
         return factory;
     }
-
-    // --- Factory 2: For RideRequestEventDto ---
 
     @Bean
     public ConsumerFactory<String, RideRequestEventDto> rideRequestConsumerFactory() {
@@ -92,12 +82,10 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         
         props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName());
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, RideRequestEventDto.class.getName()); // Local class
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, RideRequestEventDto.class.getName());
         
-        // Trust both our own package and the (future) booking service package
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.cts.driver.dto.kafka, com.cts.booking.dto.kafka");
         
-        // Add the critical Type Mapping for the ride request
         props.put(JsonDeserializer.TYPE_MAPPINGS, "com.cts.booking.dto.kafka.RideRequestEventDto:com.cts.driver.dto.kafka.RideRequestEventDto");
 
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
@@ -115,7 +103,7 @@ public class KafkaConsumerConfig {
         DefaultErrorHandler errorHandler = new DefaultErrorHandler((record, exception) -> {
             log.error("Failed to process RideRequest. Topic: {}, Offset: {}. Reason: {}", 
                 record.topic(), record.offset(), exception.getMessage());
-        }, new FixedBackOff(0L, 0L)); // No retries
+        }, new FixedBackOff(0L, 0L));
         
         errorHandler.addNotRetryableExceptions(org.springframework.kafka.support.serializer.DeserializationException.class);
         factory.setCommonErrorHandler(errorHandler);

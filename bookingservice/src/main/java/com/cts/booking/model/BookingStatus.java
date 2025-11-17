@@ -4,8 +4,8 @@ public enum BookingStatus {
     PENDING,            // Rider requested
     ACCEPTED,           // Driver assigned
     IN_PROGRESS,        // Ride started
-    AWAITING_PAYMENT,   // Ride physically ended, payment pending <-- NEW
+    AWAITING_PAYMENT,   // Ride physically ended, payment pending
     PAID,               // Payment successful, feedback pending
     COMPLETED,          // Feedback given (or skipped), fully closed
-    CANCELLED           // Cancelled by user/driver/admin
+    CANCELLED           // Cancelled by user/driver
 }

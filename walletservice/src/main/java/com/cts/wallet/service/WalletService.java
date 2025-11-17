@@ -44,11 +44,8 @@ public class WalletService {
     @Value("${app.company-wallet-user-id}")
     private String companyWalletUserId;
 
-    // --- 1. PUBLIC METHODS CALLED BY CONTROLLER ---
-
     @Transactional
     public void executeRidePayment(RidePaymentRequestDto request) {
-        // This simply delegates to the core logic method
         processRidePayment(request);
     }
 
@@ -73,42 +70,33 @@ public class WalletService {
     @Transactional(readOnly = true)
     public Page<RideTransaction> getAllRideTransactions(TransactionFilterDto filters, Pageable pageable) {
         
-        // 1. Create a base specification that does nothing (selects all).
         Specification<RideTransaction> spec = Specification.where(null);
 
-        // 2. Check if the 'filters' object is null.
         if (filters == null) {
             log.debug("Filters DTO is NULL. Returning all transactions.");
             return rideTransactionRepository.findAll(spec, pageable);
         }
 
-        // 3. Conditionally add filters one by one ONLY if they have a real value.
-        
-        // Check for Search Term (Booking ID)
         if (filters.getSearchTerm() != null && !filters.getSearchTerm().isEmpty()) {
             log.debug("Adding filter: Booking ID contains '{}'", filters.getSearchTerm());
             spec = spec.and(specBuilder.hasBookingId(filters.getSearchTerm()));
         }
 
-        // Check for Payment Mode
         if (filters.getPaymentMode() != null && !filters.getPaymentMode().isEmpty() && !filters.getPaymentMode().equals("ALL")) {
             log.debug("Adding filter: Payment Mode is '{}'", filters.getPaymentMode());
             spec = spec.and(specBuilder.hasPaymentMode(filters.getPaymentMode()));
         }
 
-        // Check for Date
         if (filters.getDateFilter() != null) {
             log.debug("Adding filter: Date is '{}'", filters.getDateFilter());
             spec = spec.and(specBuilder.hasDate(filters.getDateFilter()));
         }
 
-        // Check for Fare (both filter and value must be present)
         if (filters.getFareFilter() != null && !filters.getFareFilter().equals("ALL") && filters.getFareValue() != null) {
             log.debug("Adding filter: Fare {} {}", filters.getFareFilter(), filters.getFareValue());
             spec = spec.and(specBuilder.hasFare(filters.getFareFilter(), filters.getFareValue()));
         }
         
-        // 4. Execute the final, combined query.
         log.debug("Executing final specification query.");
         return rideTransactionRepository.findAll(spec, pageable);
     }
@@ -119,14 +107,12 @@ public class WalletService {
         Wallet driverWallet = getWallet(dto.getDriverUserId());
         Wallet companyWallet = getWallet(companyWalletUserId);
 
-        // Use DTO totalFare (which includes everything) or calculate
         double total = dto.getTotalFare(); 
         double commission = dto.getCommissionFee();
         double driverShare = total - commission;
 
         if (riderWallet.getBalance() < total) throw new InsufficientFundsException("Rider funds insufficient.");
 
-        // Transfers
         riderWallet.setBalance(riderWallet.getBalance() - total);
         driverWallet.setBalance(driverWallet.getBalance() + driverShare);
         companyWallet.setBalance(companyWallet.getBalance() + commission);
@@ -135,12 +121,10 @@ public class WalletService {
         walletRepository.save(driverWallet);
         walletRepository.save(companyWallet);
 
-        // Ledger
         logTransaction(riderWallet.getId(), -total, TransactionType.RIDE_DEBIT, dto.getBookingId());
         logTransaction(driverWallet.getId(), driverShare, TransactionType.RIDE_CREDIT, dto.getBookingId());
         logTransaction(companyWallet.getId(), commission, TransactionType.COMMISSION_FEE, dto.getBookingId());
         
-        // Receipt
         createReceipt(dto, total, commission, "WALLET");
     }
 
@@ -151,7 +135,6 @@ public class WalletService {
         Wallet companyWallet = getWallet(companyWalletUserId);
         double commission = dto.getCommissionFee();
 
-        // Deduct Commission Only
         driverWallet.setBalance(driverWallet.getBalance() - commission);
         companyWallet.setBalance(companyWallet.getBalance() + commission);
         
@@ -171,7 +154,7 @@ public class WalletService {
         wallet.setBalance(wallet.getBalance() + amount);
         Wallet saved = walletRepository.save(wallet);
         
-        logTransaction(saved.getId(), amount, TransactionType.DEPOSIT, null); // Null ref ID for deposits
+        logTransaction(saved.getId(), amount, TransactionType.DEPOSIT, null);
         return walletMapper.toWalletDto(saved);
     }
 
@@ -205,22 +188,15 @@ public class WalletService {
         }
     }
 
-    // --- 3. HELPERS ---
-
-    // Helper: Find wallet or throw (for read-only ops)
     private Wallet findWalletByUserId(String userId) {
         return walletRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for user ID: " + userId));
     }
 
-    // Helper: Get existing or create new (for transactional ops)
     private Wallet getWallet(String userId) {
         return getOrCreateWallet(userId);
     }
 
-    
-
-    // Helper: The actual implementation
     private Wallet getOrCreateWallet(String userId) {
         return walletRepository.findByUserId(userId)
                 .orElseGet(() -> walletRepository.save(new Wallet(userId)));
@@ -237,7 +213,7 @@ public class WalletService {
         RideTransaction rt = new RideTransaction();
         rt.setBookingId(dto.getBookingId());
         rt.setRiderId(dto.getRiderUserId());
-        rt.setRiderName(dto.getRiderName()); // Fill details from DTO
+        rt.setRiderName(dto.getRiderName());
         rt.setRiderPhone(dto.getRiderPhone());
 
         rt.setPaymentMode("WALLET".equals(mode) ? PaymentMode.WALLET : PaymentMode.CASH);
@@ -249,7 +225,6 @@ public class WalletService {
         rt.setPickupAddress(dto.getPickupAddress());
         rt.setDropoffAddress(dto.getDropoffAddress());
 
-        // FIX: Using BigDecimal.valueOf
         rt.setTotalFare((total));
         rt.setCommissionFee((comm));
         rt.setBaseFare((dto.getBaseFare()));

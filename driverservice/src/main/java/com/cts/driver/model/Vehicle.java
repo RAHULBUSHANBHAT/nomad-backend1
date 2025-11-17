@@ -23,21 +23,20 @@ public class Vehicle {
     private VehicleType vehicleType;
 
     @Column(name = "registration_number", nullable = false, unique = true)
-    private String registrationNumber; // e.g., MH 12 AB 1234
+    private String registrationNumber;
 
     @Column(name = "manufacturer", nullable = false)
-    private String manufacturer; // e.g., "Maruti"
+    private String manufacturer;
     
     @Column(name = "model", nullable = false)
-    private String model; // e.g., "Suzuki Dzire"
+    private String model;
 
     @Column(name = "color", nullable = false)
     private String color;
     
-    @Column(name = "is_verified") // Admin verification
+    @Column(name = "is_verified")
     private boolean isVerified = false;
 
-    // --- Document Details ---
     @Column(name = "rc_number")
     private String rcNumber;
 

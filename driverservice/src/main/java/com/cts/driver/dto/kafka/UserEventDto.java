@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-// This DTO must match the one from user-service
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

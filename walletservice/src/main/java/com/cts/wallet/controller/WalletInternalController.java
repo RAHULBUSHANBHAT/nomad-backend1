@@ -32,11 +32,6 @@ public class WalletInternalController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * --- THIS IS THE NEW, MISSING METHOD ---
-     * An internal endpoint for other services (like rider-service)
-     * to fetch a wallet by its USER ID.
-     */
     @GetMapping("/user/{userId}")
     public ResponseEntity<WalletDto> getWalletByUserIdInternal(@PathVariable String userId) {
         log.info("Internal request: Fetching wallet for user ID: {}", userId);

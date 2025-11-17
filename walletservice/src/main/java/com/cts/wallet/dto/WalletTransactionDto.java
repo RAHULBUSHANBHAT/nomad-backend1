@@ -11,7 +11,7 @@ public class WalletTransactionDto {
     private String id;
     private double amount;
     private TransactionType type;
-    private String walletId;    // <-- Changed from userId to walletId
-    private String referenceId; // <-- Added (This is the Booking ID or Transaction Ref)
+    private String walletId;
+    private String referenceId;
     private LocalDateTime timestamp;
 }

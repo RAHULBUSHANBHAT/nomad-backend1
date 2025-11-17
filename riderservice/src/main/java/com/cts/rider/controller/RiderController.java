@@ -8,12 +8,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication; // <-- Import
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/riders")
-@PreAuthorize("hasRole('RIDER')") // All endpoints in this service are for RIDERs
+@PreAuthorize("hasRole('RIDER')")
 @Slf4j
 public class RiderController {
 

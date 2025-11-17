@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class BookingAssignmentDto {
     private String driverUserId;
-    private String vehicleId; // <-- This field was missing!
+    private String vehicleId;
 }

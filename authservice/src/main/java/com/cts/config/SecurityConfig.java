@@ -13,26 +13,18 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    /**
-     * Provides the BCrypt password hashing bean.
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Configures the security filter chain for this service.
-     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless APIs
+            .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
-                // This is the API path we defined in the gateway
                 .requestMatchers("/api/v1/auth/login").permitAll()
-                // All other endpoints (like /actuator/health) must be authenticated
                 .anyRequest().authenticated()
             );
 

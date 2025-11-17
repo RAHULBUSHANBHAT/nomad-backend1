@@ -8,20 +8,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.List; // <-- ADD
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, String> {
     
-    // For Rider's "My Bookings" page
     Page<Booking> findByRiderUserId(String riderUserId, Pageable pageable);
     Page<Booking> findByRiderUserIdAndStatus(String riderUserId, BookingStatus bookingStatus, Pageable pageable);
     Page<Booking> findByRiderUserIdAndPickupLocationNameContainingIgnoreCase(String riderUserId, String searchTerm, Pageable pageable);
     Page<Booking> findByRiderUserIdAndDropoffLocationNameContainingIgnoreCase(String riderUserId, String searchTerm, Pageable pageable);
     Page<Booking> findByRiderUserIdAndRequestTimeBetween(String riderUserId, LocalDateTime start, LocalDateTime end, Pageable pageable);
     
-    // For Driver's "My Bookings" page
     Page<Booking> findByDriverUserId(String driverUserId, Pageable pageable);
     Page<Booking> findByDriverUserIdAndStatus(String driverUserId, BookingStatus bookingStatus, Pageable pageable);
     Page<Booking> findByDriverUserIdAndPickupLocationNameContainingIgnoreCase(String driverUserId, String searchTerm, Pageable pageable);

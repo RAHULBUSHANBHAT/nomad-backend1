@@ -24,14 +24,11 @@ public class MatchingService {
         log.info("Finding match for booking {} in {} for category {}", 
                  request.getBookingId(), request.getCity(), request.getVehicleType());
 
-        // 1. Find Available Drivers in the City
         List<Driver> availableDrivers = driverRepository.findByCurrentCityAndAvailableTrue(request.getCity());
 
         int offerCount = 0;
         for (Driver driver : availableDrivers) {
             
-            // 2. Check if Driver has a VERIFIED vehicle matching the category
-            // FIX: Convert Enum to String using .name() before comparing
             boolean hasMatchingVehicle = driver.getVehicles().stream()
                 .anyMatch(v -> v.isVerified() && 
                                v.getVehicleType().name().equalsIgnoreCase(request.getVehicleType()));

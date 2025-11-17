@@ -26,7 +26,7 @@ public class RoleAuthorizationFilter extends AbstractGatewayFilterFactory<RoleAu
             String userRole = exchange.getRequest().getHeaders().getFirst("X-User-Role");
 
             if (userRole == null) {
-                log.warn("🚨 Role Filter FAILED - 'X-User-Role' header is missing.");
+                log.warn("Role Filter FAILED - 'X-User-Role' header is missing.");
                 return onError(exchange, "Role not found in token", HttpStatus.FORBIDDEN);
             }
 
@@ -35,7 +35,7 @@ public class RoleAuthorizationFilter extends AbstractGatewayFilterFactory<RoleAu
                     .anyMatch(role -> role.equalsIgnoreCase(userRole));
 
             if (!hasPermission) {
-                log.warn("🚫 Role Filter FAILED - Access Denied. User role: [{}], Required roles: {}",
+                log.warn("Role Filter FAILED - Access Denied. User role: [{}], Required roles: {}",
                          userRole, allowedRoles);
                 return onError(exchange,
                         "Access denied. Required roles: " + allowedRoles +
@@ -43,7 +43,7 @@ public class RoleAuthorizationFilter extends AbstractGatewayFilterFactory<RoleAu
                         HttpStatus.FORBIDDEN);
             }
 
-            log.info("✅ Role Filter SUCCESS - User role: [{}], Path: {}",
+            log.info("Role Filter SUCCESS - User role: [{}], Path: {}",
                      userRole, exchange.getRequest().getPath());
             return chain.filter(exchange);
         };
@@ -53,9 +53,7 @@ public class RoleAuthorizationFilter extends AbstractGatewayFilterFactory<RoleAu
         exchange.getResponse().setStatusCode(status);
         exchange.getResponse().getHeaders().add("X-Error-Message", error);
         return exchange.getResponse().setComplete();
-    }
-
-    
+    }    
     
     @Data    
     public static class Config {

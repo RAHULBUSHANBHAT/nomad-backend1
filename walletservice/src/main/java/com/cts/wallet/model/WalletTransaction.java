@@ -35,28 +35,22 @@ public class WalletTransaction {
     @Column(name = "type", nullable = false)
     private TransactionType type;
 
-    // Renamed from 'relatedBookingId' to be generic
     @Column(name = "reference_id", nullable = false)
     private String referenceId; 
 
     @Column(name = "timestamp", nullable = false, updatable = false)
     private LocalDateTime timestamp;
 
-    // --- THE CRITICAL CONSTRUCTOR ---
-    // This ensures we can create a transaction easily from the Service
     public WalletTransaction(String walletId, double amount, TransactionType type, String referenceId) {
         this.walletId = walletId;
         this.amount = amount;
         this.type = type;
-        // If no reference provided (e.g. deposit), generate one. 
-        // If booking ID provided, use it.
         this.referenceId = (referenceId != null) ? referenceId : UUID.randomUUID().toString();
     }
 
     @PrePersist
     protected void onPersist() {
         timestamp = LocalDateTime.now();
-        // Double check to ensure non-null before saving
         if (referenceId == null) {
             referenceId = UUID.randomUUID().toString();
         }

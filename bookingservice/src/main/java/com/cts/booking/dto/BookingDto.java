@@ -9,7 +9,6 @@ public class BookingDto {
     private String id;
     private BookingStatus status;
 
-    // --- ENRICHED DETAILS (Fetched from User-Service) ---
     private String riderUserId;
     private String riderName;
     private String riderPhoneNumber;
@@ -21,11 +20,9 @@ public class BookingDto {
     private long totalTrips;
     private LocalDateTime driverCreatedAt;
     
-    // --- VEHICLE DETAILS ---
-    private String vehicleId;   // Specific vehicle used
-    private String vehicleType; // "Sedan"
+    private String vehicleId;
+    private String vehicleType;
     
-    // --- RIDE INFO ---
     private String pickupLocationName;
     private String dropoffLocationName;
     private double pickupLat;
@@ -34,11 +31,9 @@ public class BookingDto {
     private double dropoffLng;
     private String city;
     
-    // --- FINANCIAL ---
     private double fare;
-    private String paymentStatus; // "UNPAID", "PAID", "PAID_CASH"
+    private String paymentStatus;
 
-    // --- TIMESTAMPS ---
     private LocalDateTime requestTime;
     private LocalDateTime acceptedTime;
     private LocalDateTime pickupTime;

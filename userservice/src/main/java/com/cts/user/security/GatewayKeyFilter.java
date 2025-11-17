@@ -12,10 +12,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * LAYER 1 SECURITY FILTER
- * Verifies the X-Gateway-Key to block non-gateway requests (e.g., Postman).
- */
 @Component
 @Slf4j
 public class GatewayKeyFilter extends OncePerRequestFilter {
@@ -29,7 +25,6 @@ public class GatewayKeyFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         
-        // Allow the public registration endpoint to bypass this check
         if (request.getRequestURI().equals("/api/v1/users/register")) {
             log.trace("Bypassing GatewayKeyFilter for public registration endpoint.");
             filterChain.doFilter(request, response);

@@ -16,10 +16,10 @@ public class RideTransaction {
     private String id;
 
     @Column(name = "booking_id", unique = true, nullable = false)
-    private String bookingId; // The link back to the booking
+    private String bookingId;
 
     @Column(name = "rider_id", nullable = false)
-    private String riderId; // WHO to charge
+    private String riderId;
     
     @Column(name = "rider_name")
     private String riderName;
@@ -28,7 +28,7 @@ public class RideTransaction {
     private String riderPhone;
 
     @Column(name = "driver_id", nullable = false)
-    private String driverId; // WHO to pay
+    private String driverId;
     
     @Column(name = "driver_name")
     private String driverName;
@@ -40,7 +40,7 @@ public class RideTransaction {
     private double baseFare;
 
     @Column(name = "distance_fare")
-    private double distanceFare; // The charge for kms
+    private double distanceFare;
 
     @Column(name = "taxes")
     private double taxes;

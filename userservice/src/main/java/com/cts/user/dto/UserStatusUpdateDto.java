@@ -7,5 +7,5 @@ import lombok.Data;
 @Data
 public class UserStatusUpdateDto {
     @NotNull(message = "Status cannot be null")
-    private Status status; // Will be "ACTIVE" or "SUSPENDED"
+    private Status status;
 }

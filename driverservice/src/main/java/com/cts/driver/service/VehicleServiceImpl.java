@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class VehicleServiceImpl {
 
     @Autowired private DriverRepository driverRepository;
-    @Autowired private VehicleRepository vehicleRepository; // Not strictly needed for these ops
+    @Autowired private VehicleRepository vehicleRepository;
     @Autowired private VehicleMapper vehicleMapper;
 
     @Transactional
@@ -31,10 +31,9 @@ public class VehicleServiceImpl {
                 .orElseThrow(() -> new ResourceNotFoundException("Driver profile not found"));
         
         Vehicle vehicle = vehicleMapper.toEntity(vehicleDto);
-        driver.getVehicles().add(vehicle); // Add to the list
-        driverRepository.save(driver); // Cascade will save the vehicle
+        driver.getVehicles().add(vehicle);
+        driverRepository.save(driver);
         
-        // Get the just-saved vehicle to return its generated ID
         Vehicle savedVehicle = driver.getVehicles().get(driver.getVehicles().size() - 1);
         return vehicleMapper.toDto(savedVehicle);
     }
@@ -58,23 +57,19 @@ public class VehicleServiceImpl {
         if (!removed) {
             throw new ResourceNotFoundException("Vehicle not found or does not belong to this driver");
         }
-        driverRepository.save(driver); // orphanRemoval=true handles delete
+        driverRepository.save(driver);
     }
 
     @Transactional
     public VehicleDto updateVehicle(String userId, String vehicleId, VehicleDto vehicleDto) {
-        // First, find the driver to ensure security
         Driver driver = driverRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Driver profile not found"));
         
-        // Find the specific vehicle in their list
         Vehicle vehicle = driver.getVehicles().stream()
                 .filter(v -> v.getId().equals(vehicleId))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found or does not belong to this driver"));
 
-        // Update the vehicle's properties
-        // We only allow changing these fields
         vehicle.setVehicleType(vehicleDto.getVehicleType());
         vehicle.setRegistrationNumber(vehicleDto.getRegistrationNumber());
         vehicle.setModel(vehicleDto.getModel());
@@ -82,34 +77,24 @@ public class VehicleServiceImpl {
         vehicle.setInsurancePolicyNumber(vehicleDto.getInsurancePolicyNumber());
         vehicle.setInsuranceExpiry(vehicleDto.getInsuranceExpiry());
         
-        // Note: isVerified fields are NOT updated here. They are admin-only.
-        
         Vehicle updatedVehicle = vehicleRepository.save(vehicle);
         return vehicleMapper.toDto(updatedVehicle);
     }
 
     @Transactional(readOnly = true)
     public List<VehicleTypeCountDto> getAvailableVehicleCountsByCity(String city) {
-        
-        // 1. Get the counts that the database *does* have.
-        // This list might be incomplete (e.g., no SEDANs found).
         List<VehicleTypeCountDto> dbCounts = vehicleRepository.getAvailableVehicleCountsByCity(city);
 
-        // 2. Convert the DB list into a Map for fast, O(1) lookups.
-        // We map: VehicleType -> availableCount
         Map<VehicleType, Long> countMap = dbCounts.stream()
             .collect(Collectors.toMap(
                 VehicleTypeCountDto::getVehicleType,
                 VehicleTypeCountDto::getAvailableCount
             ));
 
-        // 3. Iterate through ALL possible VehicleType enums.
         return Arrays.stream(VehicleType.values())
             .map(type -> {
-                // 4. Get the count from the map, or default to 0L if not found.
                 long count = countMap.getOrDefault(type, 0L);
                 
-                // 5. Create a new DTO with the type and its count (0 or more).
                 return new VehicleTypeCountDto(type, count);
             })
             .collect(Collectors.toList());

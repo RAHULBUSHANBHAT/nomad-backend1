@@ -19,19 +19,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/drivers") // Aligns with gateway's public route
+@RequestMapping("/api/v1/drivers")
 @Slf4j
 public class DriverController {
 
     @Autowired
     private DriverServiceImpl driverService;
     
-    // Helper to get the User ID from the SecurityContext
     private String getUserId(Authentication authentication) {
         return (String) authentication.getDetails();
     }
-
-    // --- DRIVER ENDPOINTS (for the driver's own app) ---
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('DRIVER')")
@@ -56,15 +53,12 @@ public class DriverController {
     @PreAuthorize("hasRole('DRIVER')")
     public ResponseEntity<Void> acceptOffer(Authentication authentication, 
                                         @PathVariable String offerId,
-                                        @RequestBody AcceptOfferRequestDto dto) { // Expecting JSON body
+                                        @RequestBody AcceptOfferRequestDto dto) {
     
-        // Calling the 3-argument method
         driverService.acceptOffer(getUserId(authentication), offerId, dto.getVehicleId());
         return ResponseEntity.ok().build();
     }
     
-    // --- ADMIN ENDPOINTS (for the admin panel) ---
-
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<DriverProfileDto>> getAllDrivers(

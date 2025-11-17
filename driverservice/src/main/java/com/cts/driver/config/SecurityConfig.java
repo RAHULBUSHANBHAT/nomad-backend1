@@ -15,40 +15,29 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // Layer 3
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
-    private JwtHeaderAuthenticationFilter jwtHeaderAuthenticationFilter; // Layer 2
+    private JwtHeaderAuthenticationFilter jwtHeaderAuthenticationFilter;
     @Autowired
-    private GatewayKeyFilter gatewayKeyFilter; // Layer 1
+    private GatewayKeyFilter gatewayKeyFilter;
 
-    /**
-     * --- "INTERNAL" SECURITY CHAIN ---
-     * @Order(1) - Runs FIRST.
-     * Applies ONLY to "/api/v1/internal/**"
-     */
     @Bean
     @Order(1)
     public SecurityFilterChain internalApiSecurity(HttpSecurity http) throws Exception {
         http
-            .securityMatcher("/api/v1/internal/**") // Only for internal paths
+            .securityMatcher("/api/v1/internal/**")
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/v1/internal/**").permitAll()
             )
-            // Apply ONLY Layer 1 (The Gateway Key)
             .addFilterBefore(gatewayKeyFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }
 
-    /**
-     * --- "PUBLIC" SECURITY CHAIN ---
-     * @Order(2) - Runs SECOND.
-     * Applies to all other paths (e.g., "/api/v1/drivers/**")
-     */
     @Bean
     @Order(2)
     public SecurityFilterChain publicApiSecurity(HttpSecurity http) throws Exception {
@@ -58,9 +47,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 .anyRequest().authenticated()
             )
-            // Apply BOTH Layer 1 AND Layer 2
-            .addFilterBefore(gatewayKeyFilter, UsernamePasswordAuthenticationFilter.class) // Layer 1
-            .addFilterAfter(jwtHeaderAuthenticationFilter, GatewayKeyFilter.class); // Layer 2
+            .addFilterBefore(gatewayKeyFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(jwtHeaderAuthenticationFilter, GatewayKeyFilter.class);
             
         return http.build();
     }

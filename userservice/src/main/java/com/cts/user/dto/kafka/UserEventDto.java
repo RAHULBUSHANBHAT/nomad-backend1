@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 public class UserEventDto {
     private String userId;
     private String email;
-    private String password; // The HASHED password
+    private String password;
     private String role;
     private String status;
-    private String eventType; // e.g., "USER_CREATED"
+    private String eventType;
 }

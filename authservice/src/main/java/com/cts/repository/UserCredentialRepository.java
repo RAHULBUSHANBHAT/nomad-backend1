@@ -9,9 +9,5 @@ import java.util.Optional;
 @Repository
 public interface UserCredentialRepository extends JpaRepository<UserCredential, String> {
     
-    /**
-     * Spring Data JPA will automatically create the SQL query for this method:
-     * "SELECT * FROM user_credentials WHERE email = ?"
-     */
     Optional<UserCredential> findByEmail(String email);
 }

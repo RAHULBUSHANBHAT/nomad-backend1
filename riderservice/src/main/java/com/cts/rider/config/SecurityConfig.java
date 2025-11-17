@@ -13,19 +13,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // Layer 3
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
-    private JwtHeaderAuthenticationFilter jwtHeaderAuthenticationFilter; // Layer 2
+    private JwtHeaderAuthenticationFilter jwtHeaderAuthenticationFilter;
     @Autowired
-    private GatewayKeyFilter gatewayKeyFilter; // Layer 1
+    private GatewayKeyFilter gatewayKeyFilter;
 
-    /**
-     * --- "PUBLIC" SECURITY CHAIN ---
-     * @Order(2) - Runs SECOND.
-     * Applies to all other paths (e.g., "/api/v1/drivers/**")
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -34,9 +29,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 .anyRequest().authenticated()
             )
-            // Apply BOTH Layer 1 AND Layer 2
-            .addFilterBefore(gatewayKeyFilter, UsernamePasswordAuthenticationFilter.class) // Layer 1
-            .addFilterAfter(jwtHeaderAuthenticationFilter, GatewayKeyFilter.class); // Layer 2
+            .addFilterBefore(gatewayKeyFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(jwtHeaderAuthenticationFilter, GatewayKeyFilter.class);
             
         return http.build();
     }

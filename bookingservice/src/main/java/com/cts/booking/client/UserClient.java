@@ -11,10 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-/**
- * Feign Client to call the INTERNAL endpoints of user-service.
- * This is for the NEW "Feedback" feature.
- */
 @FeignClient(name = "USER-SERVICE", 
              path = "/api/v1/internal/users", 
              configuration = FeignClientConfig.class)

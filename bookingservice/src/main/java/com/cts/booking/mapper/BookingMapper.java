@@ -9,7 +9,6 @@ public class BookingMapper {
 
     public BookingDto toDto(Booking booking) {
         BookingDto dto = new BookingDto();
-        // Copy basic fields
         dto.setId(booking.getId());
         dto.setStatus(booking.getStatus());
         dto.setRiderUserId(booking.getRiderUserId());
@@ -21,7 +20,7 @@ public class BookingMapper {
         dto.setDriverRating(booking.getDriverProfileRating());
         dto.setTotalTrips(booking.getTotalTrips());
         dto.setDriverCreatedAt(booking.getDriverCreatedAt());
-        dto.setVehicleId(booking.getVehicleId()); // Important
+        dto.setVehicleId(booking.getVehicleId());
         dto.setFare(booking.getFare());
         dto.setPaymentStatus(booking.getPaymentStatus());
         dto.setPickupLocationName(booking.getPickupLocationName());

@@ -1,6 +1,6 @@
 package com.cts.wallet.repository;
 
-import com.cts.wallet.model.PaymentMode; // <-- CHANGED
+import com.cts.wallet.model.PaymentMode;
 import com.cts.wallet.model.RideTransaction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;

@@ -5,7 +5,6 @@ import com.cts.wallet.model.PaymentMode;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-// This DTO is for the *internal* payment endpoint
 @Data
 public class RidePaymentRequestDto {
     @NotBlank

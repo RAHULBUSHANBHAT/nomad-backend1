@@ -16,7 +16,7 @@ public class Wallet {
     private String id;
 
     @Column(name = "user_id", nullable = false, unique = true, updatable = false)
-    private String userId; // The foreign key from user-service
+    private String userId;
 
     @Column(name = "balance", nullable = false)
     private double balance = 0.0;

@@ -17,30 +17,23 @@ public class UserEventConsumer {
 
     @KafkaListener(
         topics = "${app.kafka.topics.user-events}", 
-        containerFactory = "kafkaListenerContainerFactory") // Uses the robust factory
+        containerFactory = "kafkaListenerContainerFactory")
     public void handleUserEvent(UserEventDto eventDto, Acknowledgment ack) {
         try {
             if (eventDto == null) {
-                // This happens if the message was corrupted and skipped by the ErrorHandler
-               
-                ack.acknowledge(); // Acknowledge and skip the bad message
+                ack.acknowledge();
                 return;
             }
 
            
 
             if ("USER_CREATED".equals(eventDto.getEventType())) {
-                // Create a wallet for *every* new user (Rider, Driver, Admin)
                 walletService.createWallet(eventDto.getUserId());
             } 
             
-            ack.acknowledge(); // Acknowledge the message (commit the offset)
+            ack.acknowledge();
 
         } catch (Exception e) {
-        
-            // We do NOT acknowledge, so the DefaultErrorHandler will log it
-            // and the app will not be stuck in a crash loop.
-            // We re-throw to trigger the error handler.
             throw new RuntimeException("Failed to process user event, see logs for details", e);
         }
     }

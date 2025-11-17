@@ -21,9 +21,8 @@ public class Driver {
     private String id;
 
     @Column(name = "user_id", nullable = false, unique = true)
-    private String userId; // This is the foreign key to the user-service's User
+    private String userId;
 
-    // --- Verification Details ---
     @Column(name = "aadhar_number", unique = true)
     private String aadharNumber;
 
@@ -45,15 +44,14 @@ public class Driver {
     @Column(name = "driver_license_expiry")
     private LocalDate driverLicenseExpiry;
 
-    // --- Profile & Status ---
     @Column(name = "profile_photo_url")
     private String profilePhotoUrl;
 
     @Column(name = "available")
-    private boolean available = false; // Default to false until verified and online
+    private boolean available = false;
 
     @Column(name = "current_city")
-    private String currentCity; // For our simple matching
+    private String currentCity;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -61,7 +59,6 @@ public class Driver {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // --- Vehicle Relationship ---
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "driver_id") 
     private List<Vehicle> vehicles = new ArrayList<>();

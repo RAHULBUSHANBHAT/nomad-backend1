@@ -17,7 +17,7 @@ public class RideRequestConsumer {
 
     @KafkaListener(
         topics = "${app.kafka.topics.ride-requests}", 
-        containerFactory = "rideRequestListenerContainerFactory") // Uses the reliable factory
+        containerFactory = "rideRequestListenerContainerFactory")
     public void handleRideRequest(RideRequestEventDto eventDto, Acknowledgment ack) {
         log.info("Received ride request event for booking ID: {}", eventDto.getBookingId());
 
@@ -30,7 +30,6 @@ public class RideRequestConsumer {
 
             matchingService.findDriversAndCreateOffers(eventDto);
             
-            // Acknowledge the message
             ack.acknowledge();
 
         } catch (Exception e) {
