@@ -32,10 +32,6 @@ public class VehicleDto {
     
     @NotBlank(message = "PUC Number is required")
     private String color;
-    
-    @NotBlank(message = "RC Number is required")
-    @Size(min = 5, max = 20, message = "RC Number must be valid")
-    private String rcNumber;
 
     @NotNull(message = "PUC Expiry date is required")
     @Future(message = "PUC Expiry must be a future date")
